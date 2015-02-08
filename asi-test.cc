@@ -390,6 +390,87 @@ void test_PulseGuide(int CameraID)
     }
 }
 
+void test_RoiFormat(const int CameraID)
+{
+    const int num_image_types = 4;
+    const ASI_IMG_TYPE imageTypes[num_image_types] = {ASI_IMG_RAW8, ASI_IMG_RGB24, ASI_IMG_RAW16, ASI_IMG_Y8};
+
+    ASI_ERROR_CODE errorcode;
+
+    errorcode = ASISetStartPos(CameraID, 0, 0);
+    check_errorcode(errorcode);
+
+    // Setting the ROI appears to center the view (i.e., also change the StartPos).
+
+    for (int setWidth = 128; setWidth <= 128; setWidth += 1)
+    {
+        for (int setHeight = 64; setHeight <= 64; setHeight += 1)
+        {
+            for (int setBin = 1; setBin <= 2; setBin += 1)
+            {
+                for (int imageTypeIndex = 0; imageTypeIndex < num_image_types; ++imageTypeIndex)
+                {
+                    const ASI_IMG_TYPE setImageType = imageTypes[imageTypeIndex];
+
+                    cout << "ASISetROIFormat: width " << setWidth << " height " << setHeight << " bin " << setBin << " imageType " << setImageType << " (" << toString(setImageType) << ")" << endl;
+                    errorcode = ASISetROIFormat(CameraID, setWidth, setHeight, setBin, setImageType);
+                    if (errorcode == ASI_ERROR_INVALID_SIZE)
+                    {
+                        cout << "ASISetROIFormat done. Invalid size: " << setWidth << " " << setHeight << " " << setBin << " " << toString(setImageType) << endl;
+                        continue;
+                    }
+                    check_errorcode(errorcode);
+                    cout << "ASISetROIFormat done." << endl;
+
+                    int getWidth, getHeight, getBin;
+                    ASI_IMG_TYPE getImageType;
+
+                    errorcode = ASIGetROIFormat(CameraID, &getWidth, &getHeight, &getBin, &getImageType);
+                    check_errorcode(errorcode);
+
+                    if (!(setWidth == getWidth && setHeight == getHeight && setBin == getBin && setImageType == getImageType))
+                    {
+                        cout << "****** MISMATCH ******" << endl;
+                        cout << "ASIGetROIFormat reports: width " << getWidth << " height " << getHeight << " bin " << getBin << " imageType " << getImageType << " (" << toString(getImageType) << ")" << endl;
+                        assert(0);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void test_StartPos(const int CameraID)
+{
+    ASI_ERROR_CODE errorcode;
+
+    errorcode = ASISetROIFormat(CameraID, 400, 200, 2, ASI_IMG_RAW16);
+    check_errorcode(errorcode);
+
+    for (int setX = 50; setX <= 160; setX += 2)
+    {
+        for (int setY = 50; setY <= 160; setY += 2)
+        {
+            cout << "ASISetStartPos: x " << setX << " y " << setY << endl;
+            errorcode = ASISetStartPos(CameraID, setX, setY);
+            check_errorcode(errorcode);
+            cout << "ASISetStartPos done." << endl;
+
+            int getX, getY;
+
+            errorcode = ASIGetStartPos(CameraID, &getX, &getY);
+            check_errorcode(errorcode);
+
+            if (!(setX == getX && setY == getY))
+            {
+                cout << "****** MISMATCH ******" << endl;
+                cout << "ASIGetStartPos reports: x " << getX << " y " << getY << endl;
+                assert(0);
+            }
+        }
+    }
+}
+
 int main()
 {
     cout << "main thread: " << pthread_self() << endl;
@@ -421,7 +502,10 @@ int main()
             check_errorcode(errorcode);
             cout << "open done." << endl;
 
-            test_GetCameraControlDescriptions(info.CameraID);
+            // test_GetCameraControlDescriptions(info.CameraID);
+
+            test_RoiFormat(info.CameraID);
+            //test_StartPos(info.CameraID);
 
             // test_GetControlValue(info.CameraID);
 

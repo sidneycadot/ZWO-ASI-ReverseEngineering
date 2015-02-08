@@ -167,10 +167,32 @@ ASI_AutoExpMaxExp            | 0 (local)
 ASI_AutoExpMaxBrightness     | 0 (local)
 
 ##### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int   iWidth, int   iHeight,  int   iBin, ASI_IMG_TYPE   Img_type)
+
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3002, wIndex =   450, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3004, wIndex =   576, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3006, wIndex =   513, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3008, wIndex =   703, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xac, wValue = 0x0000, wIndex =     0, data =          (nil), wLength =    0, timeout = 200)
+libusb_clear_halt()
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xb5, wValue = 0x0000, wIndex =     1, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x300c, wIndex =  1390, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3012, wIndex =   835, data =          (nil), wLength =    0, timeout = 500)
+libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x300a, wIndex =    90, data =          (nil), wLength =    0, timeout = 500)
+
 ##### ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type)
 
+No traffic.
+
 ##### ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY)
+
+libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3002, wIndex = y0 + 2                    , data = (nil), wLength = 0, timeout = 500)
+libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3004, wIndex = x0                        , data = (nil), wLength = 0, timeout = 500)
+libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3006, wIndex = y0 + BinSize * yHeight + 1, data = (nil), wLength = 0, timeout = 500)
+libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3008, wIndex = x0 + BinSize * xWidth  - 1, data = (nil), wLength = 0, timeout = 500)
+
 ##### ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY)
+
+No traffic.
 
 ##### ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking)
 ##### ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID)
