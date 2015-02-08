@@ -146,8 +146,8 @@ All other values are (apparently) cached.
 
 Setting values will not fail on an open camera. No range checking is performed.
 
-control                      | effect
------------------------------|----------------
+control                      | number of libusb_control_transfer calls
+-----------------------------|----------------------------------------
 ASI_GAIN                     | 2
 ASI_EXPOSURE                 | 1
 ASI_GAMMA                    | 0 (local)
@@ -182,7 +182,7 @@ ASI_AutoExpMaxBrightness     | 0 (local)
 
 Enable the pulse guide for a given direction.
 
-libUSB_control_transfer(dev, bmRequestType = 64, bRequest = 0xb0, wValue = direction, wIndex = 0, data = NULL, wLength = 0, timeout = 500)
+libusb_control_transfer(dev, bmRequestType = 64, bRequest = 0xb0, wValue = direction, wIndex = 0, data = NULL, wLength = 0, timeout = 500)
 
 - bRequest = 0xb0
 
@@ -195,7 +195,7 @@ libUSB_control_transfer(dev, bmRequestType = 64, bRequest = 0xb0, wValue = direc
 
 Disable the pulse guide for a given direction.
 
-libUSB_control_transfer(dev, bmRequestType = 64, bRequest = 0xb1, wValue = direction, wIndex = 0, data = NULL, wLength = 0, timeout = 500)
+libusb_control_transfer(dev, bmRequestType = 64, bRequest = 0xb1, wValue = direction, wIndex = 0, data = NULL, wLength = 0, timeout = 500)
 
 - bRequest = 0xb1
 
