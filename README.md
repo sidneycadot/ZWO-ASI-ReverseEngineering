@@ -66,20 +66,107 @@ Note that this is the only function in the API that does not return an ASI_ERROR
 number of ASI camera devices found.
 
 ##### ASI_ERROR_CODE ASIGetCameraProperty(ASI_CAMERA_INFO *pASICameraInfo, int iCameraIndex)
+
+This function fills a user-supplied ASI_CAMERA_INFO structure with information about an ASI camera device.
+
+This function only works if ASIGetNumOfConnectedCameras() was executed beforehand. If it is called before, an
+ASI_ERROR_INVALID_ID is returned, presumably because the internal list of devices maintained by ASICamera2
+contains zero devices.
+
+This function does not cause any traffic on the USB bus. This suggests that all information is contained
+as a lookup table in the library.
+
+The ASI_CAMERA_INFO contains the all-important 'CameraID' field. This is an integer value that is used to
+identify the camera in all API calls below.
+
 ##### ASI_ERROR_CODE ASIOpenCamera(int iCameraID)
+
+Almost all functions in the API require that the camera be opened using this call.
+
+Note that on my machine, this call fails with error ASI_ERROR_CAMERA_REMOVED if the camera is connected in
+an actual USB3 port.
+
+This function causes a flurry of libusb activity.
+
+- libusb_init()
+- libusb_open_device_with_vid_pid(vendor_id = 963, product_id = 4621)
+- libusb_set_configuration(configuration = 1)
+- libusb_claim_interface(interface_number = 0)
+- libusb_control_transfer calls (129x !!!)
+
+The 129 control calls are where much of the action is happening
+This will be rather hard to reverse engineer.
+
 ##### ASI_ERROR_CODE ASICloseCamera(int iCameraID)
+
+This function closes the camera device that was previously opened by ASIOpenCamera().
+
+It causes two calls to libusb_close(); one with the USB device handle, and another one with NULL.
+The latter invocation may be a bug.
+
+##### ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL *bSet);
+
+This function returns whether the camera is a USB3 host.
+The camera device must be opened for this to work.
+
+With my ASI120/MM-S, this function returns 0 if it is plugged in an USB2 port.
+As indicated above, my camera doesn't currently work on an USB3 port under Linux.
+
+This function causes no USB activity.
+
 ##### ASI_ERROR_CODE ASIGetNumOfControls(int iCameraID, int * piNumberOfControls)
+
+This function queries the number of controls.
+A "control" is a camera parameter that can be set.
+The camera device must be opened for this to work.
+
+This function causes no USB activity.
+
 ##### ASI_ERROR_CODE ASIGetControlCaps(int iCameraID, int iControlIndex, ASI_CONTROL_CAPS * pControlCaps)
 
+This function gives information about a specific control.
+A "control" is a camera parameter that can be set.
+The camera device must be opened for this to work.
+
+The ControlID and ControlType fields in ASI_CONTROL_CAPS appear to be identical.
+
+However, the "AutoExpMaxBrightness", with ControlID 12, control gives ControlType 11 (ASI_AutoExpMaxExp),
+which should probably be 12 (ASI_AutoExpMaxBrightness).
+
+This function causes no USB activity.
+
 ##### ASI_ERROR_CODE ASIGetControlValue(int iCameraID, int iControlID, long *plValue, ASI_BOOL *pbAuto)
+
+Get the current value of a certain control.
+
+Note that only a query of the ASI_TEMPERATURE control causes bus activity.
+All other values are (apparently) cached.
+
 ##### ASI_ERROR_CODE ASISetControlValue(int iCameraID, int iControlID, long lValue, ASI_BOOL bAuto)
+
+Setting values will not fail on an open camera. No range checking is performed.
+
+control                      | effect
+-----------------------------|----------------
+ASI_GAIN                     | 2
+ASI_EXPOSURE                 | 1
+ASI_GAMMA                    | 0 (local)
+ASI_WB_R                     | 0 (local)
+ASI_WB_B                     | 0 (local)
+ASI_BRIGHTNESS               | 1
+ASI_BANDWIDTHOVERLOAD        | 2
+ASI_OVERCLOCK                | 7
+ASI_TEMPERATURE              | 0 (local)
+ASI_FLIP                     | 0 (local)
+ASI_AutoExpMaxGain           | 0 (local)
+ASI_AutoExpMaxExp            | 0 (local)
+ASI_AutoExpMaxBrightness     | 0 (local)
+
 ##### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int iWidth, int iHeight,  int iBin, ASI_IMG_TYPE Img_type);
 ##### ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type)
 
 ##### ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY)
 ##### ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY)
-
-##### ASI_ERROR_CODE ASIGetDroppedFrames(int iCameraID,int *piDropFrames)
 
 ##### ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking)
 ##### ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID)
@@ -87,9 +174,33 @@ number of ASI camera devices found.
 ##### ASI_ERROR_CODE ASIStartVideoCapture(int iCameraID)
 ##### ASI_ERROR_CODE ASIStopVideoCapture(int iCameraID)
 
-##### ASI_ERROR_CODE ASIGetVideoData(int iCameraID, unsigned char* pBuffer, long lBuffSize, int iWaitms);
+##### ASI_ERROR_CODE ASIGetDroppedFrames(int iCameraID,int *piDropFrames)
 
-##### ASI_ERROR_CODE ASIPulseGuideOn(int iCameraID, ASI_GUIDE_DIRECTION direction);
-##### ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction);
+##### ASI_ERROR_CODE ASIGetVideoData(int iCameraID, unsigned char* pBuffer, long lBuffSize, int iWaitms)
 
-##### ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL *bSet);
+##### ASI_ERROR_CODE ASIPulseGuideOn(int iCameraID, ASI_GUIDE_DIRECTION direction)
+
+Enable the pulse guide for a given direction.
+
+libUSB_control_transfer(dev, bmRequestType = 64, bRequest = 0xb0, wValue = direction, wIndex = 0, data = NULL, wLength = 0, timeout = 500)
+
+- bRequest = 0xb0
+
+- ASI_GUIDE_NORTH = 0
+- ASI_GUIDE_SOUTH = 1
+- ASI_GUIDE_EAST  = 2
+- ASI_GUIDE_WEST  = 3
+
+##### ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction)
+
+Disable the pulse guide for a given direction.
+
+libUSB_control_transfer(dev, bmRequestType = 64, bRequest = 0xb1, wValue = direction, wIndex = 0, data = NULL, wLength = 0, timeout = 500)
+
+- bRequest = 0xb1
+
+- ASI_GUIDE_NORTH = 0
+- ASI_GUIDE_SOUTH = 1
+- ASI_GUIDE_EAST  = 2
+- ASI_GUIDE_WEST  = 3
+

@@ -89,7 +89,7 @@ typedef enum ASI_ERROR_CODE{ //ASI ERROR CODE
 }ASI_ERROR_CODE;
 
 typedef enum ASI_BOOL{
-	ASI_FALSE =0,
+	ASI_FALSE = 0,
 	ASI_TRUE
 }ASI_BOOL;
 
