@@ -18,7 +18,20 @@ libASICamera2.a                            | The patched static library; uses "l
 libASICamera2.so.0.0.0918                  | The patched dynamic library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
 asi-test.cc                                | A test program that controls the camera and captures a bunch of images.
 libUSB.c                                   | A set of functions that mimic libusb behavior, printing invocations and results along the way.
-Makefile                                   | Makefile for asi-test, using the libUSB bridge
+Makefile                                   | Makefile for asi-test, using the libUSB.c functions.
+
+## Methodology of reverse-engineering the library
+
+The proprietary ASICamera2 library uses libusb 1.0 (the modern version of the user-space USB library) to
+communicate with devices.
+
+To understand the way in which the library uses libusb, we generated a patched version of the ASICamera2 library
+where all references to "libusb" are replaced by "libUSB".
+
+Next, we implement a "libUSB.c" that re-implements 15 of the "libusb" functions, but renames them with the prefix "libUSB".
+These 15 functions print their arguments, call the actual libusb functions, and then print the return value of the libusb functions.
+
+This effectively means that all usage of libusb by the ASICamera2 is now logged.
 
 ## What we learned so far
 
@@ -26,15 +39,13 @@ The "ASICamera2" API currently consists of 21 function calls.
 We describe them below and discuss below what they do in terms of USB bus activity.
 
 All functions use the 'default' context of libusb, meaning that they pass a NULL pointer as the 'context' argument
-weherever it is needed.
+wherever it is needed.
 
 ##### int ASIGetNumOfConnectedCameras()
 
-The ASIGetNumOfConnectedCameras() call is intended to be the first function called in a program that communicates
-with an ASI camera.
+The ASIGetNumOfConnectedCameras() call is intended to be the first function called in a program that
+uses the ASICamera2 library.
 
-This function uses libusb 1.0 (the modern version of the user-space USB library) to fetch a list of
-devices on the USB bus.
 
 It starts by executing a libusb_init() call. Next it executes libusb_get_device_list() to obtain a list of
 all USB devices available in the system.
