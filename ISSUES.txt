@@ -1,0 +1,141 @@
+Hi,
+
+Over the last two days I have been toying with using the SDK as provided on the ZWO homepage in Linux (64-bit) to control my brand new ASI-120MM-S camera.
+
+I have gotten everything to work, but along the way I encountered a number of small issues. I hope that they can be improved in an upcoming release. I list them below for reference.
+
+1. Packaging of the library
+
+I found the most recent release on the page http://www.zwoptical.com/Eng/Software/index.asp.
+
+The link as found on that page says "v0.0.905" for Linux and Mac, and it leads to the following URL: http://www.zwoptical.com/software/ASI_linux_mac_SDK.tar.
+
+When unpacking (untarring) the downloaded file, it turns out that it contains a single file ASI_linux_mac_SDK.tar.bz2, which is an archive itself. This unpacks to three directories, "include", "lib", and "demo".
+
+The nested packing is superfluous; I think it is also good practice to put the version number in the filename of the tar file, and to unpack to a directory that has the same name as the tar file minus its extension (.tar.bz2), which should contain the three directories. So ideally, dowloading and unpacking would look like this:
+
+$ wget http://www.zwoptical.com/software/ASI_linux_mac_SDK_v0.0.905.tar.bz2
+$ tar xf ASI_linux_mac_SDK_v0.0.905.tar.bz2 
+$ find -type d
+.
+./ASI_linux_mac_SDK_v0.0.905
+./ASI_linux_mac_SDK_v0.0.905/lib
+./ASI_linux_mac_SDK_v0.0.905/lib/x86
+./ASI_linux_mac_SDK_v0.0.905/lib/x64
+./ASI_linux_mac_SDK_v0.0.905/lib/armv6
+./ASI_linux_mac_SDK_v0.0.905/lib/mac64
+./ASI_linux_mac_SDK_v0.0.905/lib/armv5
+./ASI_linux_mac_SDK_v0.0.905/lib/mac32
+./ASI_linux_mac_SDK_v0.0.905/lib/armhf
+./ASI_linux_mac_SDK_v0.0.905/include
+./ASI_linux_mac_SDK_v0.0.905/demo
+./ASI_linux_mac_SDK_v0.0.905/demo/bin
+./ASI_linux_mac_SDK_v0.0.905/demo/bin/x86
+./ASI_linux_mac_SDK_v0.0.905/demo/bin/armv6
+./ASI_linux_mac_SDK_v0.0.905/demo/bin/mac64
+./ASI_linux_mac_SDK_v0.0.905/demo/bin/armv5
+
+2. Version number mismatch.
+
+The " http://www.zwoptical.com/Eng/Software/index.asp" page claims the library is version 0.0.905, yet the files in the SDK have version numbers "0.0.0918".
+This suggests that the ZWO page wasn't properly updated.
+
+3. Definition of ASICAMERA_API symbol
+
+
+In the header file, the fragment where ASICAMERA is defined currently reads:
+
+#ifdef _WINDOWS
+    #define ASICAMERA_API __declspec(dllexport)
+#elif defined _LIN
+    #define ASICAMERA_API 
+#endif
+
+To obtain the desired behavior, we are forced to compile with symbol "_LIN" defined in Linux.
+This requirement is undocumented. It is also not very logical; the ASICAMERA_API symbol is
+present to allow compilation of the library as a DLL in Windows. In all other environements,
+the ASICAMERA_API symbol should just be #defined as nothing. So I think a better solution is this:
+
+#ifdef _WINDOWS
+    #define ASICAMERA_API __declspec(dllexport)
+#else
+    #define ASICAMERA_API 
+#endif
+
+4. Three issues with using the library in C (rather than C++)
+
+4.1. Definition of ASI_Control_TYPE
+
+There are a bunch of #defines that are triggered only if the header file is processed in C (rather than C++):
+
+#ifndef __cplusplus
+#define ASI_Control_TYPE int
+#define ASI_BOOL int
+#define ASI_ERROR_CODE int
+#define ASI_FLIP_STATUS int
+#define ASI_IMG_TYPE int
+#define ASI_GUIDE_DIRECTION int
+#define ASI_BAYER_PATTERN int
+#endif
+
+However, these defines are defined below the definition of ASI_CONTROL_CAPS, which means that C compilation breaks,
+since the symbol ASI_Control_TYPE is required in the definition of the ASI_CONTROL_CAPS struct.
+
+It is at least needed to move the block of #defines above the definition of struct ASI_CONTROL_CAPS.
+
+A better solution still would be to remove these #defines alltogether, but define the "ASI_Control_TYPE"
+using a typedef, as is done for all other enum types:
+
+typedef enum ASI_Control_TYPE {
+    ASI_GAIN,
+    ASI_EXPOSURE,
+    ASI_GAMMA,
+    ASI_WB_R,
+    ASI_WB_B,
+    ASI_BRIGHTNESS,
+    ASI_BANDWIDTHOVERLOAD,  
+    ASI_OVERCLOCK,
+    ASI_TEMPERATURE,
+    ASI_FLIP,
+    ASI_AutoExpMaxGain,
+    ASI_AutoExpMaxExp,
+    ASI_AutoExpMaxBrightness,
+} ASI_Control_TYPE;
+
+4.2. using "bool" type.
+
+The definition of ASIEnableDarkSubtract() uses a "bool" type, which doesn't by default exist in C:
+
+ASICAMERA_API ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking);
+
+Possible solutions:
+
+- use an ASI_BOOL type instead;
+- use bool, but include <stdbool.h> for C compilation, which makes sure that 'bool' is an alias for the existing type _Bool.
+
+4.3. Linking the library
+
+The library uses C++ internally (which is fine), but this means that a C++-aware linker must be used rather than a standard linker.
+
+For example, to build a C program, the following fails in Linux:
+
+    gcc -Iinclude -W -Wall -O testprog.c  lib/x64/libASICamera2.a -lusb-1.0 -lpthread
+
+To make this work, you must do this:
+
+    g++ -Iinclude -W -Wall -O testprog.c  lib/x64/libASICamera2.a -lusb-1.0 -lpthread
+
+5. Typo in the header file.
+
+The ASI_CONTROL_CAPS struct defines a field with name "MaxVale", this should be "MaxValue".
+
+6. Behavior of the program.
+
+6.1. Executing ASIGetControlCaps() on the "AutoExpMaxBrightness" control returns 11 (ASI_AutoExpMaxExp) as the ControlType value.
+
+I am pretty sure that should be ASI_AutoExpMaxBrightness.
+
+6.2. libusb_close() called twice
+
+linusb_close() is called twice when closing a camera using ASICloseCamera(), the first time with the proper device parameter,
+the next time with NULL. I found this while inspecting what libASICamera2 is doing under the hood.
