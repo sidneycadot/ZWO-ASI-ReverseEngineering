@@ -16,39 +16,6 @@ using namespace std;
 
 /////////////////
 
-//ASICAMERA_API int ASIGetNumOfConnectedCameras(); 
-//ASICAMERA_API ASI_ERROR_CODE ASIGetCameraProperty(ASI_CAMERA_INFO *pASICameraInfo, int iCameraIndex);
-//ASICAMERA_API ASI_ERROR_CODE ASIOpenCamera(int iCameraID);
-//ASICAMERA_API ASI_ERROR_CODE ASICloseCamera(int iCameraID);
-//ASICAMERA_API ASI_ERROR_CODE ASIGetNumOfControls(int iCameraID, int * piNumberOfControls);
-//ASICAMERA_API ASI_ERROR_CODE ASIGetControlCaps(int iCameraID, int iControlIndex, ASI_CONTROL_CAPS * pControlCaps);
-
-//ASICAMERA_API ASI_ERROR_CODE ASIGetControlValue(int  iCameraID, int  iControlID, long *plValue, ASI_BOOL *pbAuto);
-//ASICAMERA_API ASI_ERROR_CODE ASISetControlValue(int  iCameraID, int  iControlID, long lValue, ASI_BOOL bAuto);
-
-//ASICAMERA_API  ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int iWidth, int iHeight,  int iBin, ASI_IMG_TYPE Img_type); 
-//ASICAMERA_API  ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type); 
-
-//ASICAMERA_API  ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY); 
-//ASICAMERA_API  ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY); 
-
-//ASICAMERA_API  ASI_ERROR_CODE ASIGetDroppedFrames(int iCameraID,int *piDropFrames); 
-
-//ASICAMERA_API ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking);
-//ASICAMERA_API ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID);
-
-//ASICAMERA_API  ASI_ERROR_CODE ASIStartVideoCapture(int iCameraID);
-//ASICAMERA_API  ASI_ERROR_CODE ASIStopVideoCapture(int iCameraID);
-
-//ASICAMERA_API  ASI_ERROR_CODE ASIGetVideoData(int iCameraID, unsigned char* pBuffer, long lBuffSize, int iWaitms);
-
-//ASICAMERA_API ASI_ERROR_CODE ASIPulseGuideOn(int iCameraID, ASI_GUIDE_DIRECTION direction);
-//ASICAMERA_API ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction);
-
-//ASICAMERA_API ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL *bSet);
-
-/////////////////
-
 const char * toString(const ASI_IMG_TYPE imageType)
 {
     switch (imageType)

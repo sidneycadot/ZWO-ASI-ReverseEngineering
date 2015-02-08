@@ -1,8 +1,9 @@
-Hi,
 
-Over the last two days I have been toying with using the SDK as provided on the ZWO homepage in Linux (64-bit) to control my brand new ASI-120MM-S camera.
 
-I have gotten everything to work, but along the way I encountered a number of small issues. I hope that they can be improved in an upcoming release. I list them below for reference.
+This list of issues was mailed to the ZWO User Group forum on 2015-02-08. See:
+
+    http://zwoug.org/viewtopic.php?f=21&t=1851
+
 
 1. Packaging of the library
 
