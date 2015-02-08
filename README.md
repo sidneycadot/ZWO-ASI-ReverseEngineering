@@ -5,7 +5,7 @@ This repository contains efforts to reverse-engineer the protocol of the ZWO ASI
 ## List of files
 
 filename                                   | description
--------------------------------------------+-----------------------
+-------------------------------------------|--------------------------------------------------------------------------------------------------------------
 README.md                                  | Description of the library
 MD5SUM                                     | contains MD5 checksums of the original library and include files (v0.0.918).
 ASICamera2.h.orig                          | The original header file
@@ -28,7 +28,7 @@ We describe them below and discuss below what they do in terms of USB bus activi
 All functions use the 'default' context of libusb, meaning that they pass a NULL pointer as the 'context' argument
 weherever it is needed.
 
-### int ASIGetNumOfConnectedCameras()
+##### int ASIGetNumOfConnectedCameras()
 
 The ASIGetNumOfConnectedCameras() call is intended to be the first function called in a program that communicates
 with an ASI camera.
@@ -51,31 +51,34 @@ where they are.
 Finally, the device list is freed by executing libusb_free_device_list(), and libusb_exit() is called to detach from
 libusb.
 
-### ASI_ERROR_CODE ASIGetCameraProperty(ASI_CAMERA_INFO *pASICameraInfo, int iCameraIndex)
-### ASI_ERROR_CODE ASIOpenCamera(int iCameraID)
-### ASI_ERROR_CODE ASICloseCamera(int iCameraID)
-### ASI_ERROR_CODE ASIGetNumOfControls(int iCameraID, int * piNumberOfControls)
-### ASI_ERROR_CODE ASIGetControlCaps(int iCameraID, int iControlIndex, ASI_CONTROL_CAPS * pControlCaps)
+Note that this is the only function in the API that does not return an ASI_ERROR_CODE. Instead, it returns the
+number of ASI camera devices found.
 
-### ASI_ERROR_CODE ASIGetControlValue(int iCameraID, int iControlID, long *plValue, ASI_BOOL *pbAuto)
-### ASI_ERROR_CODE ASISetControlValue(int iCameraID, int iControlID, long lValue, ASI_BOOL bAuto)
-### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int iWidth, int iHeight,  int iBin, ASI_IMG_TYPE Img_type);
-### ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type)
+##### ASI_ERROR_CODE ASIGetCameraProperty(ASI_CAMERA_INFO *pASICameraInfo, int iCameraIndex)
+##### ASI_ERROR_CODE ASIOpenCamera(int iCameraID)
+##### ASI_ERROR_CODE ASICloseCamera(int iCameraID)
+##### ASI_ERROR_CODE ASIGetNumOfControls(int iCameraID, int * piNumberOfControls)
+##### ASI_ERROR_CODE ASIGetControlCaps(int iCameraID, int iControlIndex, ASI_CONTROL_CAPS * pControlCaps)
 
-### ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY)
-### ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY)
+##### ASI_ERROR_CODE ASIGetControlValue(int iCameraID, int iControlID, long *plValue, ASI_BOOL *pbAuto)
+##### ASI_ERROR_CODE ASISetControlValue(int iCameraID, int iControlID, long lValue, ASI_BOOL bAuto)
+##### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int iWidth, int iHeight,  int iBin, ASI_IMG_TYPE Img_type);
+##### ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type)
 
-### ASI_ERROR_CODE ASIGetDroppedFrames(int iCameraID,int *piDropFrames)
+##### ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY)
+##### ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY)
 
-### ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking)
-### ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID)
+##### ASI_ERROR_CODE ASIGetDroppedFrames(int iCameraID,int *piDropFrames)
 
-### ASI_ERROR_CODE ASIStartVideoCapture(int iCameraID)
-### ASI_ERROR_CODE ASIStopVideoCapture(int iCameraID)
+##### ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking)
+##### ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID)
 
-### ASI_ERROR_CODE ASIGetVideoData(int iCameraID, unsigned char* pBuffer, long lBuffSize, int iWaitms);
+##### ASI_ERROR_CODE ASIStartVideoCapture(int iCameraID)
+##### ASI_ERROR_CODE ASIStopVideoCapture(int iCameraID)
 
-ASI_ERROR_CODE ASIPulseGuideOn(int iCameraID, ASI_GUIDE_DIRECTION direction);
-ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction);
+##### ASI_ERROR_CODE ASIGetVideoData(int iCameraID, unsigned char* pBuffer, long lBuffSize, int iWaitms);
 
-ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL *bSet);
+##### ASI_ERROR_CODE ASIPulseGuideOn(int iCameraID, ASI_GUIDE_DIRECTION direction);
+##### ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction);
+
+##### ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL *bSet);
