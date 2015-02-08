@@ -120,7 +120,7 @@ const char * toString(const ASI_BOOL boolean)
     return "unknown";
 }
 
-void show_camera_info(const ASI_CAMERA_INFO & info)
+void show_AsiCameraInfo(const ASI_CAMERA_INFO & info)
 {
     cout << "=== start of ASI_CAMERA_INFO" << endl;
     cout << endl;
@@ -188,7 +188,7 @@ void show_camera_roi_format(int CameraID)
     cout << endl;
 }
 
-void show_camera_controls(int CameraID)
+void test_GetCameraControlDescriptions(int CameraID)
 {
     // This only works on an open camera.
 
@@ -278,46 +278,91 @@ void get_camera_images(int CameraID, unsigned count)
     cout << "done." << endl;
 }
 
-const int num_get_controls = 13;
-
-const ASI_Control_TYPE get_controls[num_get_controls] = {
-    ASI_GAIN,
-    ASI_EXPOSURE,
-    ASI_GAMMA,
-    ASI_WB_R,
-    ASI_WB_B,
-    ASI_BRIGHTNESS,
-    ASI_BANDWIDTHOVERLOAD,  
-    ASI_OVERCLOCK,
-    ASI_TEMPERATURE,
-    ASI_FLIP,
-    ASI_AutoExpMaxGain,
-    ASI_AutoExpMaxExp,
-    ASI_AutoExpMaxBrightness
-};
-
-const int num_set_controls = 13;
-
-const ASI_Control_TYPE set_controls[num_set_controls] = {
-    ASI_GAIN,
-    ASI_EXPOSURE,
-    ASI_GAMMA,
-    ASI_WB_R,
-    ASI_WB_B,
-    ASI_BRIGHTNESS,
-    ASI_BANDWIDTHOVERLOAD,  
-    ASI_OVERCLOCK,
-    ASI_TEMPERATURE,
-    ASI_FLIP,
-    ASI_AutoExpMaxGain,
-    ASI_AutoExpMaxExp,
-    ASI_AutoExpMaxBrightness
-};
-
-void test_pulse_guide(int CameraID)
+void test_IsUSB3Host(const int CameraID)
 {
-    ASI_ERROR_CODE errorcode;
+    cout << "checking if the camera is a USB3 host..." << endl;
+    ASI_BOOL isUSB3;
+    ASI_ERROR_CODE errorcode = ASIIsUSB3Host(CameraID, &isUSB3);
+    check_errorcode(errorcode);
+    cout << "done. isUSB3 = " << isUSB3 << endl;
+}
 
+void test_GetControlValue(const int CameraID)
+{
+    const int num_controls = 13;
+
+    const ASI_Control_TYPE controls[num_controls] = {
+        ASI_GAIN,
+        ASI_EXPOSURE,
+        ASI_GAMMA,
+        ASI_WB_R,
+        ASI_WB_B,
+        ASI_BRIGHTNESS,
+        ASI_BANDWIDTHOVERLOAD,  
+        ASI_OVERCLOCK,
+        ASI_TEMPERATURE,
+        ASI_FLIP,
+        ASI_AutoExpMaxGain,
+        ASI_AutoExpMaxExp,
+        ASI_AutoExpMaxBrightness
+    };
+
+    for (int controlIndex = 0; controlIndex < num_controls; ++controlIndex)
+    {
+        const ASI_Control_TYPE control = controls[controlIndex];
+
+        for (int rep = 0; rep < 10; ++rep)
+        {
+            printf("ASIGetControlValue control %s\n", toString(control));
+            long value;
+            ASI_BOOL isAuto;
+            ASI_ERROR_CODE errorcode = ASIGetControlValue(CameraID, control, &value, &isAuto);
+            check_errorcode(errorcode);
+            printf("ASIGetControlValue done: control %s value %ld auto %d\n", toString(control), value, isAuto);
+        }
+    }
+}
+
+void test_SetControlValue(const int CameraID)
+{
+    const int num_controls = 13;
+
+    const ASI_Control_TYPE controls[num_controls] = {
+        ASI_GAIN,
+        ASI_EXPOSURE,
+        ASI_GAMMA,
+        ASI_WB_R,
+        ASI_WB_B,
+        ASI_BRIGHTNESS,
+        ASI_BANDWIDTHOVERLOAD,  
+        ASI_OVERCLOCK,
+        ASI_TEMPERATURE,
+        ASI_FLIP,
+        ASI_AutoExpMaxGain,
+        ASI_AutoExpMaxExp,
+        ASI_AutoExpMaxBrightness
+    };
+
+    for (int controlIndex = 0; controlIndex < num_controls; ++controlIndex)
+    {
+        const ASI_Control_TYPE control = controls[controlIndex];
+
+        for (int isAutoIndex = 0; isAutoIndex < 2; ++isAutoIndex)
+        {
+            for (long value = 20; value < 30; ++value)
+            {
+                ASI_BOOL isAuto = (isAutoIndex != 0) ? ASI_TRUE : ASI_FALSE;
+                printf("ASISetControlValue control %s value %ld auto %d\n", toString(control), value, isAuto);
+                ASI_ERROR_CODE errorcode = ASISetControlValue(CameraID, control, value, isAuto);
+                check_errorcode(errorcode);
+                printf("ASISetControlValue done.\n");
+            }
+        }
+    }
+}
+
+void test_PulseGuide(int CameraID)
+{
     const int num_directions = 4;
 
     const ASI_GUIDE_DIRECTION directions[num_directions] = {ASI_GUIDE_NORTH, ASI_GUIDE_SOUTH, ASI_GUIDE_EAST, ASI_GUIDE_WEST};
@@ -329,7 +374,7 @@ void test_pulse_guide(int CameraID)
             ASI_GUIDE_DIRECTION direction = directions[direction_index];
 
             cout << "ASIPulseGuideOn: " << toString(direction) << endl;
-            errorcode = ASIPulseGuideOn(CameraID, direction);
+            ASI_ERROR_CODE errorcode = ASIPulseGuideOn(CameraID, direction);
             check_errorcode(errorcode);
             cout << "ASIPulseGuideOn done. " << endl;
         }
@@ -338,7 +383,7 @@ void test_pulse_guide(int CameraID)
         {
             ASI_GUIDE_DIRECTION direction = directions[direction_index];
             cout << "ASIPulseGuideOff: " << toString(direction) << endl;
-            errorcode = ASIPulseGuideOff(CameraID, direction);
+            ASI_ERROR_CODE errorcode = ASIPulseGuideOff(CameraID, direction);
             check_errorcode(errorcode);
             cout << "ASIPulseGuideOff done. " << endl;
         }
@@ -367,7 +412,7 @@ int main()
         check_errorcode(errorcode);
         cout << "done getting camera info." << endl;
 
-        show_camera_info(info);
+        show_AsiCameraInfo(info);
 
         if (1)
         {
@@ -376,52 +421,11 @@ int main()
             check_errorcode(errorcode);
             cout << "open done." << endl;
 
-            cout << "checking if the camera is a USB3 host..." << endl;
-            ASI_BOOL isUSB3;
-            errorcode = ASIIsUSB3Host(info.CameraID, &isUSB3);
-            check_errorcode(errorcode);
-            cout << "done. isUSB3 = " << isUSB3 << endl;
+            test_GetCameraControlDescriptions(info.CameraID);
 
-            // show_camera_controls(info.CameraID);
+            // test_GetControlValue(info.CameraID);
 
-            // Test "get control value"
-            if (0)
-            for (int ci = 0; ci < num_get_controls; ++ci)
-            {
-                const ASI_Control_TYPE control = get_controls[ci];
-
-                for (int rep = 0; rep < 10; ++rep)
-                {
-                    printf("ASIGetControlValue control %s\n", toString(control));
-                    long value;
-                    ASI_BOOL isAuto;
-                    errorcode = ASIGetControlValue(info.CameraID, control, &value, &isAuto);
-                    check_errorcode(errorcode);
-                    printf("ASIGetControlValue done: control %s value %ld auto %d\n", toString(control), value, isAuto);
-                }
-            }
-
-            // Test "set control value"
-            if (0)
-            for (int ci = 12; ci < 13; ++ci)
-            {
-                const ASI_Control_TYPE control = set_controls[ci];
-
-                for (int isAuto = 0; isAuto < 2; ++isAuto)
-                {
-                    for (long value = 20; value < 30; ++value)
-                    {
-                        ASI_BOOL isAutoSetting = (isAuto != 0) ? ASI_TRUE : ASI_FALSE;
-                        printf("ASISetControlValue control %s value %ld auto %d\n", toString(control), value, isAutoSetting);
-                        errorcode = ASISetControlValue(info.CameraID, control, value, isAutoSetting);
-                        check_errorcode(errorcode);
-                        printf("ASISetControlValue done.\n");
-                    }
-                }
-            }
-
-
-            test_pulse_guide(info.CameraID);
+            //test_PulseGuide(info.CameraID);
 
             // get_camera_images(info.CameraID, 3);
 

@@ -139,15 +139,19 @@ This function causes no USB activity.
 
 Get the current value of a certain control.
 
-Note that only a query of the ASI_TEMPERATURE control causes bus activity.
+Note that only a query of the ASI_TEMPERATURE control causes bus activity
+An ASI_TEMPERATURE request looks like this:
+
+libusb_control_transfer(dev, bmRequestType = 192, bRequest = 0xa7, wValue = 0x30b2, wIndex = 0, data = ..., wLength = 2, timeout = 500)
+
 All other values are (apparently) cached.
 
 ##### ASI_ERROR_CODE ASISetControlValue(int iCameraID, int iControlID, long lValue, ASI_BOOL bAuto)
 
 Setting values will not fail on an open camera. No range checking is performed.
 
-control                      | number of libusb_control_transfer calls
------------------------------|----------------------------------------
+control                      | number of libusb_control_transfer() calls
+-----------------------------|------------------------------------------
 ASI_GAIN                     | 2
 ASI_EXPOSURE                 | 1
 ASI_GAMMA                    | 0 (local)
@@ -162,7 +166,7 @@ ASI_AutoExpMaxGain           | 0 (local)
 ASI_AutoExpMaxExp            | 0 (local)
 ASI_AutoExpMaxBrightness     | 0 (local)
 
-##### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int iWidth, int iHeight,  int iBin, ASI_IMG_TYPE Img_type);
+##### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int   iWidth, int   iHeight,  int   iBin, ASI_IMG_TYPE   Img_type)
 ##### ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type)
 
 ##### ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY)
@@ -191,6 +195,8 @@ libusb_control_transfer(dev, bmRequestType = 64, bRequest = 0xb0, wValue = direc
 - ASI_GUIDE_EAST  = 2
 - ASI_GUIDE_WEST  = 3
 
+This function is completely understood.
+
 ##### ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction)
 
 Disable the pulse guide for a given direction.
@@ -204,3 +210,4 @@ libusb_control_transfer(dev, bmRequestType = 64, bRequest = 0xb1, wValue = direc
 - ASI_GUIDE_EAST  = 2
 - ASI_GUIDE_WEST  = 3
 
+This function is completely understood.
