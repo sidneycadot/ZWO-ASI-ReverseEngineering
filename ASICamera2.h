@@ -28,11 +28,11 @@ while(1)
 #define ASICAMERA2_H
 
 
-#include <stdbool.h>
+
 
 #ifdef _WINDOWS
 	#define ASICAMERA_API __declspec(dllexport)
-#else
+#elif defined _LIN
 	#define ASICAMERA_API 
 #endif
 
@@ -89,7 +89,7 @@ typedef enum ASI_ERROR_CODE{ //ASI ERROR CODE
 }ASI_ERROR_CODE;
 
 typedef enum ASI_BOOL{
-	ASI_FALSE = 0,
+	ASI_FALSE =0,
 	ASI_TRUE
 }ASI_BOOL;
 
@@ -125,7 +125,22 @@ enum ASI_Control_TYPE{ //Control ID//
 	ASI_AutoExpMaxGain,
 	ASI_AutoExpMaxExp,
 	ASI_AutoExpMaxBrightness,
+	
+
 };
+typedef struct _ASI_CONTROL_CAPS
+{
+	char Name[64]; //the name of the Control like Exposure, Gain etc..
+	char Description[128]; //description of this control
+	int ControlID; //this is used to get value and set value of the control
+	long MaxVale;
+	long MinValue;
+	long DefaultValue;
+	ASI_BOOL IsAutoSupported; //support auto set 1, don't support 0
+	ASI_BOOL IsWritable; //some control like temperature can only be read by some cameras 
+	ASI_Control_TYPE ControlType;
+} ASI_CONTROL_CAPS;
+
 
 #ifndef __cplusplus
 #define ASI_Control_TYPE int
@@ -136,20 +151,6 @@ enum ASI_Control_TYPE{ //Control ID//
 #define ASI_GUIDE_DIRECTION int
 #define ASI_BAYER_PATTERN int
 #endif
-
-typedef struct _ASI_CONTROL_CAPS
-{
-	char Name[64]; //the name of the Control like Exposure, Gain etc..
-	char Description[128]; //description of this control
-	int ControlID; //this is used to get value and set value of the control
-	long MaxValue;
-	long MinValue;
-	long DefaultValue;
-	ASI_BOOL IsAutoSupported; //support auto set 1, don't support 0
-	ASI_BOOL IsWritable; //some control like temperature can only be read by some cameras 
-	ASI_Control_TYPE ControlType;
-} ASI_CONTROL_CAPS;
-
 
 #ifdef __cplusplus
 extern "C" {
