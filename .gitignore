@@ -1,3 +1,6 @@
 asi-test
+asi-test-RE
 asi-test.o
 libUSB.o
+usb_control_transfer.log
+libASICamera2_ReverseEngineered.o

@@ -1,4 +1,9 @@
-#include "ASICamera2.h"
+
+/////////////////
+// asi-test.cc //
+/////////////////
+
+#include "ASICamera2_patched.h"
 
 #include <iostream>
 #include <cassert>
@@ -14,9 +19,9 @@
 
 using namespace std;
 
-/////////////////
+// Functions to obtain string representation of the enum constants defined in the API.
 
-const char * toString(const ASI_IMG_TYPE imageType)
+static const char * toString(const ASI_IMG_TYPE imageType)
 {
     switch (imageType)
     {
@@ -99,17 +104,6 @@ const char * toString(const ASI_GUIDE_DIRECTION direction)
     return "unknown";
 }
 
-void check_errorcode(ASI_ERROR_CODE errorcode)
-{
-    if (errorcode == ASI_SUCCESS)
-    {
-        return;
-    }
-
-    cout << "runtime error " << errorcode << " (" << toString(errorcode) << ")." << endl;
-    throw runtime_error("yikes");
-}
-
 const char * toString(const ASI_BOOL boolean)
 {
     switch (boolean)
@@ -119,6 +113,20 @@ const char * toString(const ASI_BOOL boolean)
     }
     return "unknown";
 }
+
+// Check the error code as returned by an ASI function.
+// Throw exception if the call was unsuccesful.
+
+static void check_errorcode(ASI_ERROR_CODE errorcode)
+{
+    if (errorcode != ASI_SUCCESS)
+    {
+        const string message = string("check_errorcode failed; errorcode = ") + to_string(errorcode) + " (" + toString(errorcode) + ")";
+        throw runtime_error(message);
+    }
+}
+
+// Show camera info
 
 void show_AsiCameraInfo(const ASI_CAMERA_INFO & info)
 {
@@ -188,6 +196,8 @@ void show_camera_roi_format(int CameraID)
     cout << endl;
 }
 
+// Tests
+
 void test_GetCameraControlDescriptions(int CameraID)
 {
     // This only works on an open camera.
@@ -221,19 +231,15 @@ void test_GetCameraControlDescriptions(int CameraID)
     }
 }
 
-void get_camera_images(int CameraID, unsigned count)
+void test_GetCameraImages(const int CameraID, const unsigned count)
 {
-    const int PIX_WIDTH = 1280;
-    const int PIX_HEIGHT = 960;
-    const int BINNING  = 1;
+    const int PIX_WIDTH  = 1280;
+    const int PIX_HEIGHT =  960;
+    const int BINNING    =    1;
     const ASI_IMG_TYPE IMAGE_TYPE = ASI_IMG_RAW16;
     const int BYTES_PER_PIXEL = 2;
 
     ASI_ERROR_CODE errorcode;
-
-    // Limit USB usage
-    //rc = ASISetControlValue(CameraID, 6, 10, ASI_FALSE);
-    //assert(rc == ASI_SUCCESS);
 
     show_camera_roi_format(CameraID);
 
@@ -259,17 +265,19 @@ void get_camera_images(int CameraID, unsigned count)
         chrono::time_point<chrono::high_resolution_clock> t2 = chrono::high_resolution_clock::now();
         check_errorcode(errorcode);
 
-        double duration = chrono::duration_cast<chrono::duration<double>>(t2 - t1).count();
-        double bw = imageBuffer.size() * 8 / duration / 1048576;
+        const double duration = chrono::duration_cast<chrono::duration<double>>(t2 - t1).count();
+        const double bandwidth = imageBuffer.size() * 8 / duration / 1048576;
 
-        cout << "received frame (" << duration << " s, " << bw << " MBit/sec)" << endl;
+        cout << "received frame (" << duration << " s, " << bandwidth << " MBit/sec)" << endl;
 
-        //ostringstream out;
-        //out << "image_" << setw(6) << setfill('0') << frame << ".raw";
-
-        //ofstream f(out.str());
-        //f.write(reinterpret_cast<const char *>(imageBuffer.data()), imageBuffer.size());
-        //f.close();
+        if (0)
+        {
+            ostringstream out;
+            out << "image_" << setw(6) << setfill('0') << frame << ".raw";
+            ofstream f(out.str());
+            f.write(reinterpret_cast<const char *>(imageBuffer.data()), imageBuffer.size());
+            f.close();
+        }
     }
 
     cout << "stopping video capture ..." << endl;
@@ -334,7 +342,7 @@ void test_SetControlValue(const int CameraID)
         ASI_WB_R,
         ASI_WB_B,
         ASI_BRIGHTNESS,
-        ASI_BANDWIDTHOVERLOAD,  
+        ASI_BANDWIDTHOVERLOAD,
         ASI_OVERCLOCK,
         ASI_TEMPERATURE,
         ASI_FLIP,
@@ -361,7 +369,7 @@ void test_SetControlValue(const int CameraID)
     }
 }
 
-void test_PulseGuide(int CameraID)
+void test_PulseGuide(const int CameraID)
 {
     const int num_directions = 4;
 
@@ -479,6 +487,8 @@ int main()
     int numberOfConnectedCameras = ASIGetNumOfConnectedCameras();
     cout << "number of connected cameras: " << numberOfConnectedCameras << endl;
 
+    numberOfConnectedCameras = 0;
+
     for (int i = 0; i < numberOfConnectedCameras; ++i)
     {
         ASI_ERROR_CODE errorcode;
@@ -504,14 +514,14 @@ int main()
 
             // test_GetCameraControlDescriptions(info.CameraID);
 
-            test_RoiFormat(info.CameraID);
-            //test_StartPos(info.CameraID);
+            // test_RoiFormat(info.CameraID);
+            // test_StartPos(info.CameraID);
 
             // test_GetControlValue(info.CameraID);
 
-            //test_PulseGuide(info.CameraID);
+            // test_PulseGuide(info.CameraID);
 
-            // get_camera_images(info.CameraID, 3);
+            // test_GetCameraImages(info.CameraID, 3);
 
             cout << "closing camera ..." << endl;
             errorcode = ASICloseCamera(info.CameraID);
