@@ -3,6 +3,11 @@
 // libASICamera2_ReverseEngineered.c //
 ///////////////////////////////////////
 
+// NOTE: The implementation of this library is based on the externally observed
+//       behavior of the proprietary ASICamera2 library (i.e., its calls to libusb).
+//       That behavior is normative for now; we try to mimic it as closely as possible,
+//       even though some improvements could be made.
+
 #include "ASICamera2_patched.h"
 #include "libUSB.h"
 #include <stdbool.h>
