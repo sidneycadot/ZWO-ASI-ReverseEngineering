@@ -160,8 +160,10 @@ where they are.
 Finally, the device list is freed by executing libusb_free_device_list(), and libusb_exit() is called to detach from
 libusb.
 
-Note that this is the only function in the API that does not return an ASI_ERROR_CODE. Instead, it returns the
-number of ASI camera devices found.
+Note that this is the only function in the API that does not return an ASI_ERROR_CODE.
+(The comments is "ASICamera.h" claims it does, but it cannot be true, since the error codes are positive numbers,
+which cannot be distinguished from an actual number of cameras.)
+Instead, it returns the number of ASI camera devices found as an integer, or zero in case of problems.
 
 ##### ASI_ERROR_CODE ASIGetCameraProperty(ASI_CAMERA_INFO *pASICameraInfo, int iCameraIndex)
 
@@ -190,9 +192,9 @@ This function causes a flurry of libusb activity.
 - libusb_open_device_with_vid_pid(vendor_id = 963, product_id = 4621)
 - libusb_set_configuration(configuration = 1)
 - libusb_claim_interface(interface_number = 0)
-- libusb_control_transfer calls (129x !!!)
+- libusb_control_transfer calls (130x !!!)
 
-The 129 control calls are where much of the action is happening
+The 130 control_transfer calls are where much of the action is happening.
 This will be rather hard to reverse engineer.
 
 ##### ASI_ERROR_CODE ASICloseCamera(int iCameraID)
@@ -215,7 +217,7 @@ This function causes no USB activity.
 ##### ASI_ERROR_CODE ASIGetNumOfControls(int iCameraID, int * piNumberOfControls)
 
 This function queries the number of controls.
-A "control" is a camera parameter that can be set.
+A "control" is a camera parameter that can be set and queried.
 The camera device must be opened for this to work.
 
 This function causes no USB activity.
@@ -223,7 +225,7 @@ This function causes no USB activity.
 ##### ASI_ERROR_CODE ASIGetControlCaps(int iCameraID, int iControlIndex, ASI_CONTROL_CAPS * pControlCaps)
 
 This function gives information about a specific control.
-A "control" is a camera parameter that can be set.
+A "control" is a camera parameter that can be set and queried.
 The camera device must be opened for this to work.
 
 The ControlID and ControlType fields in ASI_CONTROL_CAPS appear to be identical.
@@ -242,7 +244,7 @@ An ASI_TEMPERATURE request looks like this:
 
 libusb_control_transfer(dev, bmRequestType = 192, bRequest = 0xa7, wValue = 0x30b2, wIndex = 0, data = ..., wLength = 2, timeout = 500)
 
-All other values are (apparently) cached.
+All other values are apparently local, requiring no device interaction.
 
 ##### ASI_ERROR_CODE ASISetControlValue(int iCameraID, int iControlID, long lValue, ASI_BOOL bAuto)
 
@@ -266,6 +268,7 @@ ASI_AutoExpMaxBrightness     | 0 (local)
 
 ##### ASI_ERROR_CODE ASISetROIFormat(int iCameraID, int   iWidth, int   iHeight,  int   iBin, ASI_IMG_TYPE   Img_type)
 
+```
 libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3002, wIndex =   450, data =          (nil), wLength =    0, timeout = 500)
 libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3004, wIndex =   576, data =          (nil), wLength =    0, timeout = 500)
 libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3006, wIndex =   513, data =          (nil), wLength =    0, timeout = 500)
@@ -276,6 +279,7 @@ libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xb5, wV
 libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x300c, wIndex =  1390, data =          (nil), wLength =    0, timeout = 500)
 libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3012, wIndex =   835, data =          (nil), wLength =    0, timeout = 500)
 libusb_control_transfer(dev = 0x8b37f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x300a, wIndex =    90, data =          (nil), wLength =    0, timeout = 500)
+```
 
 ##### ASI_ERROR_CODE ASIGetROIFormat(int iCameraID, int *piWidth, int *piHeight,  int *piBin, ASI_IMG_TYPE *pImg_type)
 
@@ -283,14 +287,16 @@ No traffic.
 
 ##### ASI_ERROR_CODE ASISetStartPos(int iCameraID, int iStartX, int iStartY)
 
-libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3002, wIndex = y0 + 2                    , data = (nil), wLength = 0, timeout = 500)
-libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3004, wIndex = x0                        , data = (nil), wLength = 0, timeout = 500)
-libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3006, wIndex = y0 + BinSize * yHeight + 1, data = (nil), wLength = 0, timeout = 500)
-libusb_control_transfer(dev = 0xc9a7f0, bmRequestType =  64, bRequest = 0xa6, wValue = 0x3008, wIndex = x0 + BinSize * xWidth  - 1, data = (nil), wLength = 0, timeout = 500)
+```
+libusb_control_transfer(dev, bmRequestType = 0x40, bRequest = 0xa6, wValue = 0x3002, wIndex = y0 + 2                    , data = NULL, wLength = 0, timeout = 500)
+libusb_control_transfer(dev, bmRequestType = 0x40, bRequest = 0xa6, wValue = 0x3004, wIndex = x0                        , data = NULL, wLength = 0, timeout = 500)
+libusb_control_transfer(dev, bmRequestType = 0x40, bRequest = 0xa6, wValue = 0x3006, wIndex = y0 + BinSize * yHeight + 1, data = NULL, wLength = 0, timeout = 500)
+libusb_control_transfer(dev, bmRequestType = 0x40, bRequest = 0xa6, wValue = 0x3008, wIndex = x0 + BinSize * xWidth  - 1, data = NULL, wLength = 0, timeout = 500)
+```
 
 ##### ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY)
 
-No traffic.
+No traffic. The value is locally cached.
 
 ##### ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking)
 ##### ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID)

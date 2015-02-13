@@ -487,8 +487,6 @@ int main()
     int numberOfConnectedCameras = ASIGetNumOfConnectedCameras();
     cout << "number of connected cameras: " << numberOfConnectedCameras << endl;
 
-    numberOfConnectedCameras = 0;
-
     for (int i = 0; i < numberOfConnectedCameras; ++i)
     {
         ASI_ERROR_CODE errorcode;

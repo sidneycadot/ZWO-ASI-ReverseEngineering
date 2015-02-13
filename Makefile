@@ -2,7 +2,9 @@
 CFLAGS   = -W -Wall -O3 -std=c99
 CXXFLAGS = -W -Wall -O3 -std=c++11
 
-.PHONY : clean run
+.PHONY : clean default
+
+default : asi-test asi-test-RE
 
 asi-test : asi-test.o libUSB.o
 	$(CXX) $^ -lusb-1.0 libASICamera2_patched.a -lpthread -o $@

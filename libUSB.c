@@ -9,7 +9,6 @@
 int libUSB_init(libusb_context **context)
 {
     assert(context == NULL); // only used with the default context.
-
     printf("[libUSB/%lu] libusb_init(context = %p)\n", pthread_self(), context);
     int retval = libusb_init(context);
     printf("[libUSB/%lu] libusb_init --> retval = %d\n", pthread_self(), retval);

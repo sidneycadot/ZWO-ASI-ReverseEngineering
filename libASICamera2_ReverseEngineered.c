@@ -13,75 +13,108 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // TODO: The comment on the return value of ASIGetNumOfConnectedCameras() is wrong in ASICamera2.h.
 //       Report this.
 
+struct CameraInfo {
+    uint8_t bus_number;
+    uint8_t device_address;
+};
+
+static struct CameraInfo * caminfo = NULL;
+static int numberOfConnectedCameras = 0;
+
+static bool cleanup_atexit_registered = false;
+
+static void cleanup_atexit(void)
+{
+    free(caminfo); // no-op if caminfo is NULL
+    numberOfConnectedCameras = 0;
+}
+
+static void show_caminfo(void)
+{
+    printf("ASI USB cameras detected:\n");
+    for (int i = 0; i < numberOfConnectedCameras; ++i)
+    {
+        printf("    [%3d] bus = %3d device_address = %3d\n", i, caminfo[i].bus_number, caminfo[i].device_address);
+    }
+    printf("(end of list)\n");
+}
+
 int ASIGetNumOfConnectedCameras()
 {
+    // Register cleanup function to deallocate caminfo.
+
+    if (!cleanup_atexit_registered)
+    {
+        int retval = atexit(cleanup_atexit);
+        if (retval == 0)
+        {
+            // succesfully registered to cleanup function.
+            // Note that if it fails, we will try again next time.
+            cleanup_atexit_registered = true;
+        }
+    }
+
     const unsigned ASI_VENDOR_ID  = 0x03c3;
     const unsigned ASI_PRODUCT_ID = 0x120d;
 
-    (void)ASI_VENDOR_ID; // unused
-    (void)ASI_PRODUCT_ID; // unused
+    // Remove existing caminfo.
+    free(caminfo); // no-op if caminfo is NULL
+    caminfo = NULL;
+    numberOfConnectedCameras = 0;
 
-    int numberOfCameras = 0;
-    bool libusb_initialized = false;
-
-    // Open the USB library
+    // initialize USB library using the default context.
 
     int retval = libUSB_init(NULL);
     if (retval == LIBUSB_SUCCESS)
     {
-        libusb_initialized = true;
-
         libusb_device ** devices;
-        bool have_valid_device_list = false;
 
-        ssize_t numberOfDevices = libUSB_get_device_list(NULL, &devices);
-        if (numberOfDevices >= 0)
+        ssize_t device_count = libUSB_get_device_list(NULL, &devices);
+        if (device_count >= 0)
         {
-            have_valid_device_list = true;
-        }
-
-        for (int i = 0; i < numberOfDevices; ++i)
-        {
-            libusb_device * device = devices[i];
-
-            struct libusb_device_descriptor descriptor;
-
-            enum libusb_error retval = libusb_get_device_descriptor(device, &descriptor);
-            assert(retval == LIBUSB_SUCCESS);
-
-            const uint8_t device_address = libUSB_get_device_address(device);
-            const uint8_t bus_number = libUSB_get_bus_number(device);
-
-            (void)device_address; // unused
-            (void)bus_number; // unused
-
-            //printf("==> device %2d Bus %03d Device %03d: ID %04x:%04x\n",
-            //        i, bus_number, device_address, descriptor.idVendor, descriptor.idProduct);
-
-            if (descriptor.idVendor == ASI_VENDOR_ID && descriptor.idProduct == ASI_PRODUCT_ID)
+            for (int i = 0; i < device_count; ++i)
             {
-                //TODO: maintain a list of cameras found.
-                ++numberOfCameras;
-            }
-        }
+                libusb_device * device = devices[i];
 
-        // free the device list
-        if (have_valid_device_list)
-        {
+                // Obtain the device's descriptor.
+                // If we fail to obtain the device descriptor, silently skip this device.
+                struct libusb_device_descriptor descriptor;
+                enum libusb_error retval = libusb_get_device_descriptor(device, &descriptor);
+
+                if (retval == LIBUSB_SUCCESS)
+                {
+                    if (descriptor.idVendor == ASI_VENDOR_ID && descriptor.idProduct == ASI_PRODUCT_ID)
+                    {
+                        // Make room for this camera.
+                        // If the realloc fails, we will silently skip this camera.
+                        struct CameraInfo * resized_caminfo = realloc(caminfo, sizeof(struct CameraInfo) * (numberOfConnectedCameras + 1));
+                        if (resized_caminfo != NULL)
+                        {
+                            // realloc succeeded.
+                            caminfo = resized_caminfo;
+                            caminfo[numberOfConnectedCameras].bus_number     = libUSB_get_bus_number(device);
+                            caminfo[numberOfConnectedCameras].device_address = libUSB_get_device_address(device);
+                            numberOfConnectedCameras += 1;
+                        }
+                    }
+                }
+            }
+
+            // Free the device list.
             libUSB_free_device_list(devices, 1);
         }
-    }
 
-    if (libusb_initialized)
-    {
+        // De-initialize USB library.
         libUSB_exit(NULL);
     }
 
-    return numberOfCameras; // number of cameras
+    show_caminfo();
+    return numberOfConnectedCameras;
 }
 
 ASI_ERROR_CODE ASIGetCameraProperty(ASI_CAMERA_INFO * pASICameraInfo, int iCameraIndex)
