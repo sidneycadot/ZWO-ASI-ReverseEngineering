@@ -479,6 +479,60 @@ void test_StartPos(const int CameraID)
     }
 }
 
+int rgen(int lo, int hi)
+{
+    assert(lo <= hi);
+    return lo + rand() % (hi - lo + 1);
+}
+
+void test_StartPosAndROI(const int CameraID, const unsigned repetitions)
+{
+    cout << "START OF TEST" << endl;
+    for (unsigned rep = 1; rep <= repetitions; ++rep)
+    {
+        cout << "START CYCLE " << rep << endl;
+        if (rgen(0, 1) != 0)
+        {
+            int x = rgen(0 - 50, 1280 + 50);
+            int y = rgen(0 - 50,  960 + 50);
+
+            cout << "ASISetStartPos " <<  x << " " << y << endl;
+            ASI_ERROR_CODE errorcode = ASISetStartPos(CameraID, x, y);
+            cout << "ASISetStartPos exitcode " << errorcode << endl;
+        }
+        else
+        {
+            int w = rgen(0 - 50, 1280 + 50);
+            int h = rgen(0 - 50,  960 + 50);
+            int b = rgen(1 -  5,    2 +  5);
+            ASI_IMG_TYPE i = static_cast<ASI_IMG_TYPE>(rgen(0 -  5,    3 +  5));
+
+            cout << "ASISetROIFormat " <<  w << " " << h << " " << b << " " << i << endl;
+            ASI_ERROR_CODE errorcode = ASISetROIFormat(CameraID, w, h, b, i);
+            cout << "ASISetROIFormat exitcode " << errorcode << endl;
+        }
+
+        // report status
+        {
+            int w, h, b;
+            ASI_IMG_TYPE i;
+            ASI_ERROR_CODE errorcode = ASIGetROIFormat(CameraID, &w, &h, &b, &i);
+            check_errorcode(errorcode);
+            cout << "ASIGetROIFormat " <<  w << " " << h << " " << b << " " << i << endl;
+        }
+
+        {
+            int x, y;
+            ASI_ERROR_CODE errorcode = ASIGetStartPos(CameraID, &x, &y);
+            check_errorcode(errorcode);
+            cout << "ASIGetStartPos " <<  x << " " << y << endl;
+        }
+        cout << "END CYCLE " << rep << endl;
+        cout << endl;
+    }
+    cout << "END OF TEST" << endl;
+}
+
 int main()
 {
     cout << "main thread: " << pthread_self() << endl;
@@ -518,6 +572,8 @@ int main()
             // test_GetControlValue(info.CameraID);
 
             // test_PulseGuide(info.CameraID);
+
+            test_StartPosAndROI(info.CameraID, 1000000);
 
             // test_GetCameraImages(info.CameraID, 3);
 
