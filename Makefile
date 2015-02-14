@@ -4,7 +4,10 @@ CXXFLAGS = -W -Wall -O3 -std=c++11
 
 .PHONY : clean default
 
-default : asi-test asi-test-RE
+default : asi-test-ORIG asi-test asi-test-RE
+
+asi-test-ORIG : asi-test.o
+	$(CXX) $^ -lusb-1.0 libASICamera2.a -lpthread -o $@
 
 asi-test : asi-test.o libUSB.o
 	$(CXX) $^ -lusb-1.0 libASICamera2_patched.a -lpthread -o $@
@@ -19,4 +22,4 @@ libUSB.o : libUSB.c
 libASICamera2_ReverseEngineered.o : libASICamera2_ReverseEngineered.c
 
 clean :
-	$(RM) asi-test asi-test-RE asi-test.o libUSB.o libASICamera2_ReverseEngineered.o *~
+	$(RM) asi-test-ORIG asi-test asi-test-RE asi-test.o libUSB.o libASICamera2_ReverseEngineered.o *~
