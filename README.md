@@ -2,23 +2,27 @@
 
 This repository contains efforts to reverse-engineer the protocol of the ZWO ASI120MM-S camera.
 
+This work is currently based on version 0.1.0214 of the library.
+
 ## List of files
 
-filename                                   | description
--------------------------------------------|--------------------------------------------------------------------------------------------------------------
-README.md                                  | Description of the library
-MD5SUM                                     | contains MD5 checksums of the original library and include files (v0.0.918).
-ASICamera2.h.orig                          | The original header file
-libASICamera2.a.orig                       | The original static library
-libASICamera2.so.0.0.0918.orig             | The original dynamic library
-ISSUES.txt                                 | A text file describing several issues with the current include file and library
-ASICamera2.h                               | A hand-edited version of the library include file to fix some problems (see ISSUES.txt).
-patch-library.py                           | A script to make patched versions of the library where all references to "libusb" are replaced by "libUSB".
-libASICamera2.a                            | The patched static library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
-libASICamera2.so.0.0.0918                  | The patched dynamic library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
-asi-test.cc                                | A test program that controls the camera and captures a bunch of images.
-libUSB.c                                   | A set of functions that mimic libusb behavior, printing invocations and results along the way.
-Makefile                                   | Makefile for asi-test, using the libUSB.c functions.
+filename                           | description
+-----------------------------------|--------------------------------------------------------------------------------------------------------------
+README.md                          | Description of the library
+MD5SUM                             | contains MD5 checksums of the original library files (v0.1.0214).
+ASICamera2.h                       | The original header file (v0.1.0214)
+libASICamera2.a                    | The original static library
+libASICamera2.so.0.1.0214          | The original dynamic library
+patch-library.py                   | A script to make patched versions of the library where all references to "libusb" are replaced by "libUSB".
+libASICamera2_patched.a            | The patched static library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
+libASICamera2_patched.so.0.1.0214  | The patched dynamic library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
+ISSUES.txt                         | A text file describing several issues with the current include file and library
+asi-test.cc                        | A test program that controls the camera and captures a bunch of images.
+libUSB.h                           | A set of functions that mimic libusb behavior (header file)
+libUSB.c                           | A set of functions that mimic libusb behavior, printing invocations and results along the way.
+Makefile                           | Makefile for several program.
+asi-test-c-compatibility.c         | A C program that just opens/closes a camera, to test library compatibility with C rather than C++.
+libASICamera2_ReverseEngineered.c  | A first stab at a reverse-engineered version of libASICamera2, having the same API.
 
 ## External info
 
@@ -133,7 +137,8 @@ This effectively means that all usage of libusb by the ASICamera2 is now logged.
 
 ## What we learned so far
 
-The "ASICamera2" API currently consists of 21 function calls.
+The "ASICamera2" API currently consists of 24 function calls (v0.1.0214).
+
 We describe them below and discuss below what they do in terms of USB bus activity.
 
 All functions use the 'default' context of libusb, meaning that they pass a NULL pointer as the 'context' argument
@@ -173,8 +178,17 @@ This function only works if ASIGetNumOfConnectedCameras() was executed beforehan
 ASI_ERROR_INVALID_ID is returned, presumably because the internal list of devices maintained by ASICamera2
 contains zero devices.
 
-This function does not cause any traffic on the USB bus. This suggests that all information is contained
-as a lookup table in the library.
+Since version v0.1.0214, this function causes a lot of traffix on the USB bus, comparable to the traffic of the ASIOpenCamera()
+call:
+
+- libusb_init()
+- libusb_open_device_with_vid_pid(vendor_id = 0x03c3, product_id = 0x120d)
+- libusb_set_configuration(configuration = 1)
+- libusb_claim_interface(interface_number = 0)
+- libusb_control_transfer calls (134 calls in v0.1.0214)
+- libusb_close()
+
+One difference is that libusb_control_transfer() is called one more time.
 
 The ASI_CAMERA_INFO contains the all-important 'CameraID' field. This is an integer value that is used to
 identify the camera in all API calls below.
@@ -189,12 +203,12 @@ an actual USB3 port.
 This function causes a flurry of libusb activity.
 
 - libusb_init()
-- libusb_open_device_with_vid_pid(vendor_id = 963, product_id = 4621)
+- libusb_open_device_with_vid_pid(vendor_id = 0x03c3, product_id = 0x120d)
 - libusb_set_configuration(configuration = 1)
 - libusb_claim_interface(interface_number = 0)
-- libusb_control_transfer calls (130x !!!)
+- libusb_control_transfer calls (133 calls in v0.1.0214)
 
-The 130 control_transfer calls are where much of the action is happening.
+The 134 control_transfer calls are where much of the action is happening.
 This will be rather hard to reverse engineer.
 
 ##### ASI_ERROR_CODE ASICloseCamera(int iCameraID)
@@ -203,16 +217,6 @@ This function closes the camera device that was previously opened by ASIOpenCame
 
 It causes two calls to libusb_close(); one with the USB device handle, and another one with NULL.
 The latter invocation may be a bug.
-
-##### ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL *bSet);
-
-This function returns whether the camera is a USB3 host.
-The camera device must be opened for this to work.
-
-With my ASI120/MM-S, this function returns 0 if it is plugged in an USB2 port.
-As indicated above, my camera doesn't currently work on an USB3 port under Linux.
-
-This function causes no USB activity.
 
 ##### ASI_ERROR_CODE ASIGetNumOfControls(int iCameraID, int * piNumberOfControls)
 
@@ -249,6 +253,8 @@ All other values are apparently local, requiring no device interaction.
 ##### ASI_ERROR_CODE ASISetControlValue(int iCameraID, int iControlID, long lValue, ASI_BOOL bAuto)
 
 Setting values will not fail on an open camera. No range checking is performed.
+
+TODO: update for v0.1.0214.
 
 control                      | number of libusb_control_transfer() calls
 -----------------------------|------------------------------------------
@@ -337,3 +343,15 @@ libusb_control_transfer(dev, bmRequestType = 64, bRequest = 0xb1, wValue = direc
 - ASI_GUIDE_WEST  = 3
 
 This function is completely understood.
+
+##### ASI_ERROR_CODE ASIStopExposure(int iCameraID)
+
+New in API v0.1.0214; not investigated yet.
+
+##### ASI_ERROR_CODE ASIGetExpStatus(int iCameraID, ASI_EXPOSURE_STATUS *pExpStatus)
+
+New in API v0.1.0214; not investigated yet.
+
+##### ASI_ERROR_CODE ASIGetDataAfterExp(int iCameraID, unsigned char* pBuffer, long lBuffSize)
+
+New in API v0.1.0214; not investigated yet.

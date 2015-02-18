@@ -1,4 +1,5 @@
 
+*** NOTE: This file hasd not been updated for v0.1.0214 yet  ***
 
 This list of issues was mailed to the ZWO User Group forum on 2015-02-08. See:
 

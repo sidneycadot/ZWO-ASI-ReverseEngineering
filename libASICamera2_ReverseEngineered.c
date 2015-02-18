@@ -224,7 +224,7 @@ ASI_ERROR_CODE ASIGetDroppedFrames(int iCameraID, int * piDropFrames)
     return ASI_SUCCESS;
 }
 
-ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char * pcBMPPath, bool * bIsSubDarkWorking)
+ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char * pcBMPPath, ASI_BOOL * bIsSubDarkWorking)
 {
     (void)iCameraID; // unused
     (void)pcBMPPath; // unused
@@ -280,10 +280,35 @@ ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction)
     return ASI_SUCCESS;
 }
 
-ASI_ERROR_CODE ASIIsUSB3Host(int iCameraID, ASI_BOOL * bSet)
+ASI_ERROR_CODE ASIStartExposure(int iCameraID, long lTimems, ASI_BOOL bIsDark)
 {
     (void)iCameraID; // unused
-    (void)bSet; // unused
+    (void)lTimems; // unused
+    (void)bIsDark; // unused
+
+    return ASI_SUCCESS;
+}
+
+ASI_ERROR_CODE ASIStopExposure(int iCameraID)
+{
+    (void)iCameraID; // unused
+
+    return ASI_SUCCESS;
+}
+
+ASI_ERROR_CODE ASIGetExpStatus(int iCameraID, ASI_EXPOSURE_STATUS * pExpStatus)
+{
+    (void)iCameraID; // unused
+    (void)pExpStatus; // unused
+
+    return ASI_SUCCESS;
+}
+
+ASI_ERROR_CODE ASIGetDataAfterExp(int iCameraID, unsigned char * pBuffer, long lBuffSize)
+{
+    (void)iCameraID; // unused
+    (void)pBuffer; // unused
+    (void)lBuffSize; // unused
 
     return ASI_SUCCESS;
 }

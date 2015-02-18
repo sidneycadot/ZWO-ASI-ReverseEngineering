@@ -71,7 +71,7 @@ libusb_device_handle * libUSB_open_device_with_vid_pid (libusb_context *ctx, uin
 {
     assert(ctx == NULL); // only used with the default context.
 
-    printf("[libUSB/%lu] libusb_open_device_with_vid_pid(ctx = %p, vendor_id = %u, product_id = %u)\n", pthread_self(), ctx, vendor_id, product_id);
+    printf("[libUSB/%lu] libusb_open_device_with_vid_pid(ctx = %p, vendor_id = 0x%04x, product_id = 0x%04x)\n", pthread_self(), ctx, vendor_id, product_id);
     libusb_device_handle * retval = libusb_open_device_with_vid_pid(ctx, vendor_id, product_id);
     printf("[libUSB/%lu] libusb_open_device_with_vid_pid --> retval = %p\n", pthread_self(), retval);
     return retval;

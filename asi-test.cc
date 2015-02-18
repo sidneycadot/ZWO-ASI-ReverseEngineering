@@ -19,7 +19,23 @@
 
 using namespace std;
 
+// TODO: report spelling of ASI_ERROR_INVALID_SENQUENCE
+// TODO: report ASIGetNumOfConnectedCameras() return value weirdness
+// TODO: report strange charcters in header file.
+
 // Functions to obtain string representation of the enum constants defined in the API.
+
+static const char * toString(const ASI_BAYER_PATTERN bayerPattern)
+{
+    switch (bayerPattern)
+    {
+        case ASI_BAYER_RG : return "ASI_BAYER_RG";
+        case ASI_BAYER_BG : return "ASI_BAYER_BG";
+        case ASI_BAYER_GR : return "ASI_BAYER_GR";
+        case ASI_BAYER_GB : return "ASI_BAYER_GB";
+    }
+    return "unknown";
+}
 
 static const char * toString(const ASI_IMG_TYPE imageType)
 {
@@ -34,14 +50,38 @@ static const char * toString(const ASI_IMG_TYPE imageType)
     return "unknown";
 }
 
-const char * toString(const ASI_ERROR_CODE errorcode)
+static const char * toString(const ASI_GUIDE_DIRECTION direction)
+{
+    switch (direction)
+    {
+        case ASI_GUIDE_NORTH : return "ASI_GUIDE_NORTH";
+        case ASI_GUIDE_SOUTH : return "ASI_GUIDE_SOUTH";
+        case ASI_GUIDE_EAST  : return "ASI_GUIDE_EAST";
+        case ASI_GUIDE_WEST  : return "ASI_GUIDE_WEST";
+    }
+    return "unknown";
+}
+
+static const char * toString(const ASI_FLIP_STATUS flipStatus)
+{
+    switch (flipStatus)
+    {
+        case ASI_FLIP_NONE  : return "ASI_FLIP_NONE";
+        case ASI_FLIP_HORIZ : return "ASI_FLIP_HORIZ";
+        case ASI_FLIP_VERT  : return "ASI_FLIP_VERT";
+        case ASI_FLIP_BOTH  : return "ASI_FLIP_BOTH";
+    }
+    return "unknown";
+}
+
+static const char * toString(const ASI_ERROR_CODE errorcode)
 {
     switch (errorcode)
     {
         case ASI_SUCCESS                    : return "ASI_SUCCESS";
         case ASI_ERROR_INVALID_INDEX        : return "ASI_ERROR_INVALID_INDEX";
         case ASI_ERROR_INVALID_ID           : return "ASI_ERROR_INVALID_ID";
-        case ASI_ERROR_INVALID_CONTROL_ID   : return "ASI_ERROR_INVALID_CONTROL_ID";
+        case ASI_ERROR_INVALID_CONTROL_TYPE : return "ASI_ERROR_INVALID_CONTROL_TYPE";
         case ASI_ERROR_CAMERA_CLOSED        : return "ASI_ERROR_CAMERA_CLOSED";
         case ASI_ERROR_CAMERA_REMOVED       : return "ASI_ERROR_CAMERA_REMOVED";
         case ASI_ERROR_INVALID_PATH         : return "ASI_ERROR_INVALID_PATH";
@@ -54,62 +94,55 @@ const char * toString(const ASI_ERROR_CODE errorcode)
         case ASI_ERROR_BUFFER_TOO_SMALL     : return "ASI_ERROR_BUFFER_TOO_SMALL";
         case ASI_ERROR_VIDEO_MODE_ACTIVE    : return "ASI_ERROR_VIDEO_MODE_ACTIVE";
         case ASI_ERROR_EXPOSURE_IN_PROGRESS : return "ASI_ERROR_EXPOSURE_IN_PROGRESS";
+        case ASI_ERROR_GENERAL_ERROR        : return "ASI_ERROR_GENERAL_ERROR";
         case ASI_ERROR_END                  : return "ASI_ERROR_END";
     }
     return "unknown";
 }
 
-const char * toString(const ASI_Control_TYPE controltype)
-{
-    switch (controltype)
-    {
-        case ASI_GAIN                 : return "ASI_GAIN";
-        case ASI_EXPOSURE             : return "ASI_EXPOSURE";
-        case ASI_GAMMA                : return "ASI_GAMMA";
-        case ASI_WB_R                 : return "ASI_WB_R";
-        case ASI_WB_B                 : return "ASI_WB_B";
-        case ASI_BRIGHTNESS           : return "ASI_BRIGHTNESS";
-        case ASI_BANDWIDTHOVERLOAD    : return "ASI_BANDWIDTHOVERLOAD";
-        case ASI_OVERCLOCK            : return "ASI_OVERCLOCK";
-        case ASI_TEMPERATURE          : return "ASI_TEMPERATURE";
-        case ASI_FLIP                 : return "ASI_FLIP";
-        case ASI_AutoExpMaxGain       : return "ASI_AutoExpMaxGain";
-        case ASI_AutoExpMaxExp        : return "ASI_AutoExpMaxExp";
-        case ASI_AutoExpMaxBrightness : return "ASI_AutoExpMaxBrightness";
-    }
-    return "unknown";
-}
-
-const char * toString(const ASI_BAYER_PATTERN bayerPattern)
-{
-    switch (bayerPattern)
-    {
-        case ASI_BAYER_RG : return "ASI_BAYER_RG";
-        case ASI_BAYER_BG : return "ASI_BAYER_BG";
-        case ASI_BAYER_GR : return "ASI_BAYER_GR";
-        case ASI_BAYER_GB : return "ASI_BAYER_GB";
-    }
-    return "unknown";
-}
-
-const char * toString(const ASI_GUIDE_DIRECTION direction)
-{
-    switch (direction)
-    {
-        case ASI_GUIDE_NORTH : return "ASI_GUIDE_NORTH";
-        case ASI_GUIDE_SOUTH : return "ASI_GUIDE_SOUTH";
-        case ASI_GUIDE_EAST  : return "ASI_GUIDE_EAST";
-        case ASI_GUIDE_WEST  : return "ASI_GUIDE_WEST";
-    }
-    return "unknown";
-}
-
-const char * toString(const ASI_BOOL boolean)
+static const char * toString(const ASI_BOOL boolean)
 {
     switch (boolean)
     {
         case ASI_FALSE : return "ASI_FALSE";
         case ASI_TRUE  : return "ASI_TRUE";
+    }
+    return "unknown";
+}
+
+static const char * toString(const ASI_CONTROL_TYPE controlType)
+{
+    switch (controlType)
+    {
+        case ASI_GAIN                : return "ASI_GAIN";
+        case ASI_EXPOSURE            : return "ASI_EXPOSURE";
+        case ASI_GAMMA               : return "ASI_GAMMA";
+        case ASI_WB_R                : return "ASI_WB_R";
+        case ASI_WB_B                : return "ASI_WB_B";
+        case ASI_BRIGHTNESS          : return "ASI_BRIGHTNESS";
+        case ASI_BANDWIDTHOVERLOAD   : return "ASI_BANDWIDTHOVERLOAD";
+        case ASI_OVERCLOCK           : return "ASI_OVERCLOCK";
+        case ASI_TEMPERATURE         : return "ASI_TEMPERATURE";
+        case ASI_FLIP                : return "ASI_FLIP";
+        case ASI_AUTO_MAX_GAIN       : return "ASI_AUTO_MAX_GAIN";
+        case ASI_AUTO_MAX_EXP        : return "ASI_AUTO_MAX_EXP";
+        case ASI_AUTO_MAX_BRIGHTNESS : return "ASI_AUTO_MAX_BRIGHTNESS";
+        case ASI_HARDWARE_BIN        : return "ASI_HARDWARE_BIN";
+        case ASI_HIGH_SPEED_MODE     : return "ASI_HIGH_SPEED_MODE";
+        case ASI_COOLER_POWER_PERC   : return "ASI_COOLER_POWER_PERC";
+        case ASI_TARGET_TEMP         : return "ASI_TARGET_TEMP";
+    }
+    return "unknown";
+}
+
+static const char * toString(const ASI_EXPOSURE_STATUS exposureStatus)
+{
+    switch (exposureStatus)
+    {
+        case ASI_EXP_IDLE             : return "ASI_EXP_IDLE";
+        case ASI_EXP_WORKING          : return "ASI_EXP_WORKING";
+        case ASI_EXP_SUCCESS          : return "ASI_EXP_SUCCESS";
+        case ASI_EXP_FAILED           : return "ASI_EXP_FAILED";
     }
     return "unknown";
 }
@@ -138,7 +171,6 @@ void show_AsiCameraInfo(const ASI_CAMERA_INFO & info)
     cout << "    MaxWidth .................. : " << info.MaxWidth     << " [px]" << endl;
     cout << "    IsColorCam ................ : " << info.IsColorCam << " (" << toString(info.IsColorCam) << ")" << endl;
     cout << "    BayerPattern .............. : " << info.BayerPattern << " (" << toString(info.BayerPattern) << ")" << endl;
-    cout << "    PixelSize ................. : " << info.PixelSize    << " [um]" << endl;
 
     cout << "    SupportedBins ............. : {";
     for (int i = 0; i < 16; ++i)
@@ -170,8 +202,11 @@ void show_AsiCameraInfo(const ASI_CAMERA_INFO & info)
     }
     cout << "}" << endl;
 
+    cout << "    PixelSize ................. : " << info.PixelSize    << " [um]" << endl;
     cout << "    MechanicalShutter ......... : " << info.MechanicalShutter << " (" << toString(info.MechanicalShutter) << ")" << endl;
     cout << "    ST4Port ................... : " << info.ST4Port << " (" << toString(info.ST4Port) << ")" << endl;
+    cout << "    IsCoolerCam ............... : " << info.IsCoolerCam << " (" << toString(info.IsCoolerCam) << ")" << endl;
+    cout << "    IsUSB3Host ................ : " << info.IsUSB3Host << " (" << toString(info.IsUSB3Host) << ")" << endl;
     cout << endl;
     cout << "=== end of ASI_CAMERA_INFO" << endl;
     cout << endl;
@@ -220,7 +255,6 @@ void test_GetCameraControlDescriptions(int CameraID)
         cout << endl;
         cout << "    Name ................. : " << controlInfo.Name << endl;
         cout << "    Description .......... : " << controlInfo.Description << endl;
-        cout << "    ControlID ............ : " << controlInfo.ControlID << endl;
         cout << "    MaxValue ............. : " << controlInfo.MaxValue << endl;
         cout << "    MinValue ............. : " << controlInfo.MinValue << endl;
         cout << "    DefaultValue ......... : " << controlInfo.DefaultValue << endl;
@@ -286,20 +320,11 @@ void test_GetCameraImages(const int CameraID, const unsigned count)
     cout << "done." << endl;
 }
 
-void test_IsUSB3Host(const int CameraID)
-{
-    cout << "checking if the camera is a USB3 host..." << endl;
-    ASI_BOOL isUSB3;
-    ASI_ERROR_CODE errorcode = ASIIsUSB3Host(CameraID, &isUSB3);
-    check_errorcode(errorcode);
-    cout << "done. isUSB3 = " << isUSB3 << endl;
-}
-
 void test_GetControlValue(const int CameraID)
 {
-    const int num_controls = 13;
+    const int num_controls = 17;
 
-    const ASI_Control_TYPE controls[num_controls] = {
+    const ASI_CONTROL_TYPE controls[num_controls] = {
         ASI_GAIN,
         ASI_EXPOSURE,
         ASI_GAMMA,
@@ -310,14 +335,18 @@ void test_GetControlValue(const int CameraID)
         ASI_OVERCLOCK,
         ASI_TEMPERATURE,
         ASI_FLIP,
-        ASI_AutoExpMaxGain,
-        ASI_AutoExpMaxExp,
-        ASI_AutoExpMaxBrightness
+        ASI_AUTO_MAX_GAIN,
+        ASI_AUTO_MAX_EXP,
+        ASI_AUTO_MAX_BRIGHTNESS,
+        ASI_HARDWARE_BIN,
+        ASI_HIGH_SPEED_MODE,
+        ASI_COOLER_POWER_PERC,
+        ASI_TARGET_TEMP
     };
 
     for (int controlIndex = 0; controlIndex < num_controls; ++controlIndex)
     {
-        const ASI_Control_TYPE control = controls[controlIndex];
+        const ASI_CONTROL_TYPE control = controls[controlIndex];
 
         for (int rep = 0; rep < 10; ++rep)
         {
@@ -333,9 +362,9 @@ void test_GetControlValue(const int CameraID)
 
 void test_SetControlValue(const int CameraID)
 {
-    const int num_controls = 13;
+    const int num_controls = 17;
 
-    const ASI_Control_TYPE controls[num_controls] = {
+    const ASI_CONTROL_TYPE controls[num_controls] = {
         ASI_GAIN,
         ASI_EXPOSURE,
         ASI_GAMMA,
@@ -346,14 +375,18 @@ void test_SetControlValue(const int CameraID)
         ASI_OVERCLOCK,
         ASI_TEMPERATURE,
         ASI_FLIP,
-        ASI_AutoExpMaxGain,
-        ASI_AutoExpMaxExp,
-        ASI_AutoExpMaxBrightness
+        ASI_AUTO_MAX_GAIN,
+        ASI_AUTO_MAX_EXP,
+        ASI_AUTO_MAX_BRIGHTNESS,
+        ASI_HARDWARE_BIN,
+        ASI_HIGH_SPEED_MODE,
+        ASI_COOLER_POWER_PERC,
+        ASI_TARGET_TEMP
     };
 
     for (int controlIndex = 0; controlIndex < num_controls; ++controlIndex)
     {
-        const ASI_Control_TYPE control = controls[controlIndex];
+        const ASI_CONTROL_TYPE control = controls[controlIndex];
 
         for (int isAutoIndex = 0; isAutoIndex < 2; ++isAutoIndex)
         {
@@ -573,9 +606,9 @@ int main()
 
             // test_PulseGuide(info.CameraID);
 
-            test_StartPosAndROI(info.CameraID, 1000000);
+            // test_StartPosAndROI(info.CameraID, 1000000);
 
-            // test_GetCameraImages(info.CameraID, 3);
+            test_GetCameraImages(info.CameraID, 3);
 
             cout << "closing camera ..." << endl;
             errorcode = ASICloseCamera(info.CameraID);
