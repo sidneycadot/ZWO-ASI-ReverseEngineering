@@ -3,7 +3,7 @@
 // asi-test.cc //
 /////////////////
 
-#include "ASICamera2_patched.h"
+#include "ASICamera2.h"
 
 #include <iostream>
 #include <cassert>
@@ -608,7 +608,7 @@ int main()
 
             // test_StartPosAndROI(info.CameraID, 1000000);
 
-            test_GetCameraImages(info.CameraID, 3);
+            test_GetCameraImages(info.CameraID, 1000);
 
             cout << "closing camera ..." << endl;
             errorcode = ASICloseCamera(info.CameraID);

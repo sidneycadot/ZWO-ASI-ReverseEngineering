@@ -8,7 +8,7 @@
 //       That behavior is normative for now; we try to mimic it as closely as possible,
 //       even though some improvements could be made.
 
-#include "ASICamera2_patched.h"
+#include "ASICamera2.h"
 #include "libUSB.h"
 #include <stdbool.h>
 #include <assert.h>
