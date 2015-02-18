@@ -25,7 +25,7 @@ using namespace std;
 
 // Functions to obtain string representation of the enum constants defined in the API.
 
-static const char * toString(const ASI_BAYER_PATTERN bayerPattern)
+const char * toString(const ASI_BAYER_PATTERN bayerPattern)
 {
     switch (bayerPattern)
     {
@@ -37,7 +37,7 @@ static const char * toString(const ASI_BAYER_PATTERN bayerPattern)
     return "unknown";
 }
 
-static const char * toString(const ASI_IMG_TYPE imageType)
+const char * toString(const ASI_IMG_TYPE imageType)
 {
     switch (imageType)
     {
@@ -50,7 +50,7 @@ static const char * toString(const ASI_IMG_TYPE imageType)
     return "unknown";
 }
 
-static const char * toString(const ASI_GUIDE_DIRECTION direction)
+const char * toString(const ASI_GUIDE_DIRECTION direction)
 {
     switch (direction)
     {
@@ -62,7 +62,7 @@ static const char * toString(const ASI_GUIDE_DIRECTION direction)
     return "unknown";
 }
 
-static const char * toString(const ASI_FLIP_STATUS flipStatus)
+const char * toString(const ASI_FLIP_STATUS flipStatus)
 {
     switch (flipStatus)
     {
@@ -74,7 +74,7 @@ static const char * toString(const ASI_FLIP_STATUS flipStatus)
     return "unknown";
 }
 
-static const char * toString(const ASI_ERROR_CODE errorcode)
+const char * toString(const ASI_ERROR_CODE errorcode)
 {
     switch (errorcode)
     {
@@ -100,7 +100,7 @@ static const char * toString(const ASI_ERROR_CODE errorcode)
     return "unknown";
 }
 
-static const char * toString(const ASI_BOOL boolean)
+const char * toString(const ASI_BOOL boolean)
 {
     switch (boolean)
     {
@@ -110,7 +110,7 @@ static const char * toString(const ASI_BOOL boolean)
     return "unknown";
 }
 
-static const char * toString(const ASI_CONTROL_TYPE controlType)
+const char * toString(const ASI_CONTROL_TYPE controlType)
 {
     switch (controlType)
     {
@@ -135,7 +135,7 @@ static const char * toString(const ASI_CONTROL_TYPE controlType)
     return "unknown";
 }
 
-static const char * toString(const ASI_EXPOSURE_STATUS exposureStatus)
+const char * toString(const ASI_EXPOSURE_STATUS exposureStatus)
 {
     switch (exposureStatus)
     {
@@ -150,7 +150,7 @@ static const char * toString(const ASI_EXPOSURE_STATUS exposureStatus)
 // Check the error code as returned by an ASI function.
 // Throw exception if the call was unsuccesful.
 
-static void check_errorcode(ASI_ERROR_CODE errorcode)
+void check_errorcode(ASI_ERROR_CODE errorcode)
 {
     if (errorcode != ASI_SUCCESS)
     {
@@ -265,13 +265,29 @@ void test_GetCameraControlDescriptions(int CameraID)
     }
 }
 
+int bytes_per_pixel(const ASI_IMG_TYPE IMAGE_TYPE)
+{
+    switch (IMAGE_TYPE)
+    {
+        case ASI_IMG_RAW8  : return 1;
+        case ASI_IMG_RGB24 : return 3;
+        case ASI_IMG_RAW16 : return 2;
+        case ASI_IMG_Y8    : return 1;
+        default :
+        {
+            const string message = string("bytes_per_pixel failed; IMAGE_TYPE = ") + to_string(IMAGE_TYPE) + " (" + toString(IMAGE_TYPE) + ")";
+            throw runtime_error(message);
+        }
+    }
+}
+
 void test_GetCameraImages(const int CameraID, const unsigned count)
 {
     const int PIX_WIDTH  = 1280;
     const int PIX_HEIGHT =  960;
     const int BINNING    =    1;
-    const ASI_IMG_TYPE IMAGE_TYPE = ASI_IMG_RAW16;
-    const int BYTES_PER_PIXEL = 2;
+    const ASI_IMG_TYPE IMAGE_TYPE = ASI_IMG_RAW8;
+    const int BYTES_PER_PIXEL = bytes_per_pixel(IMAGE_TYPE);
 
     ASI_ERROR_CODE errorcode;
 
@@ -608,7 +624,7 @@ int main()
 
             // test_StartPosAndROI(info.CameraID, 1000000);
 
-            test_GetCameraImages(info.CameraID, 1000);
+            test_GetCameraImages(info.CameraID, 100);
 
             cout << "closing camera ..." << endl;
             errorcode = ASICloseCamera(info.CameraID);
