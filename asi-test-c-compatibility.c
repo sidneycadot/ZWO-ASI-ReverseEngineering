@@ -10,7 +10,7 @@
 #include <assert.h>
 #include "ASICamera2.h"
 
-int main()
+int main(void)
 {
     printf("query number of connected cameras...\n");
     int numberOfConnectedCameras = ASIGetNumOfConnectedCameras();
