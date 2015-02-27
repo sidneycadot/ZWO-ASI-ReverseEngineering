@@ -265,9 +265,9 @@ void test_GetCameraControlDescriptions(int CameraID)
     }
 }
 
-int bytes_per_pixel(const ASI_IMG_TYPE IMAGE_TYPE)
+int bytes_per_pixel(const ASI_IMG_TYPE img_type)
 {
-    switch (IMAGE_TYPE)
+    switch (img_type)
     {
         case ASI_IMG_RAW8  : return 1;
         case ASI_IMG_RGB24 : return 3;
@@ -275,18 +275,18 @@ int bytes_per_pixel(const ASI_IMG_TYPE IMAGE_TYPE)
         case ASI_IMG_Y8    : return 1;
         default :
         {
-            const string message = string("bytes_per_pixel failed; IMAGE_TYPE = ") + to_string(IMAGE_TYPE) + " (" + toString(IMAGE_TYPE) + ")";
+            const string message = string("bytes_per_pixel failed; img_type = ") + to_string(img_type) + " (" + toString(img_type) + ")";
             throw runtime_error(message);
         }
     }
 }
 
-void test_GetCameraImages(const int CameraID, const unsigned count)
+void test_GetCameraImages(const int CameraID, const unsigned count, bool writeToFile)
 {
     const int PIX_WIDTH  = 1280;
     const int PIX_HEIGHT =  960;
     const int BINNING    =    1;
-    const ASI_IMG_TYPE IMAGE_TYPE = ASI_IMG_RAW8;
+    const ASI_IMG_TYPE IMAGE_TYPE = ASI_IMG_RAW16;
     const int BYTES_PER_PIXEL = bytes_per_pixel(IMAGE_TYPE);
 
     ASI_ERROR_CODE errorcode;
@@ -307,6 +307,12 @@ void test_GetCameraImages(const int CameraID, const unsigned count)
     check_errorcode(errorcode);
     cout << "done." << endl;
 
+    ofstream f;
+    if (writeToFile)
+    {
+        f.open("images.raw", ios::binary);
+    }
+
     for (unsigned frame = 0; frame < count; ++frame)
     {
         cout << "capturing image " << frame << endl;
@@ -320,14 +326,15 @@ void test_GetCameraImages(const int CameraID, const unsigned count)
 
         cout << "received frame (" << duration << " s, " << bandwidth << " MBit/sec)" << endl;
 
-        if (0)
+        if (writeToFile)
         {
-            ostringstream out;
-            out << "image_" << setw(6) << setfill('0') << frame << ".raw";
-            ofstream f(out.str());
             f.write(reinterpret_cast<const char *>(imageBuffer.data()), imageBuffer.size());
-            f.close();
         }
+    }
+
+    if (writeToFile)
+    {
+        f.close();
     }
 
     cout << "stopping video capture ..." << endl;
@@ -624,7 +631,7 @@ int main()
 
             // test_StartPosAndROI(info.CameraID, 1000000);
 
-            test_GetCameraImages(info.CameraID, 100);
+            test_GetCameraImages(info.CameraID, 100, true);
 
             cout << "closing camera ..." << endl;
             errorcode = ASICloseCamera(info.CameraID);
