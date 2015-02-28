@@ -18,16 +18,14 @@ class AsiThread : public QThread
 
     public:
 
-        AsiThread();
+        AsiThread(QObject * parent = nullptr);
         virtual ~AsiThread();
         virtual void run();
-
-        void requestQuit();
 
     private:
 
         void getImage(const int CameraID);
-        bool quitFlag;
+        bool quitGetImageLoop;
 };
 
 #endif // AsiThread_h

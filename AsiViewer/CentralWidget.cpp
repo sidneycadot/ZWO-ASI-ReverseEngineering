@@ -16,23 +16,22 @@ CentralWidget::CentralWidget()
 
     QVBoxLayout * layout = new QVBoxLayout();
 
-    label = new QLabel("hello");
+    label = new QLabel();
     layout->addWidget(label);
 
     setLayout(layout);
 
-    asiThread = new AsiThread();
+    asiThread = new AsiThread(this);
+
     bool connectOk = QObject::connect(asiThread, SIGNAL(receivedImage(const QByteArray &)), this, SLOT(updateImage(const QByteArray &)));
     Q_ASSERT(connectOk);
+
     asiThread->start();
 }
 
 CentralWidget::~CentralWidget()
 {
     qDebug() << __PRETTY_FUNCTION__;
-    asiThread->requestQuit();
-    asiThread->wait();
-    delete asiThread;
 }
 
 void CentralWidget::updateImage(const QByteArray & imageBytes)
@@ -74,8 +73,6 @@ void CentralWidget::updateImage(const QByteArray & imageBytes)
             int value = 256 * hi + lo;
 
             double v = double(value - min_value) / (max_value - min_value);
-
-            //v = sqrt(sqrt(v));
 
             int bvalue = round(v * 255.0);
 

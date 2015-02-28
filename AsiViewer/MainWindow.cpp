@@ -11,7 +11,7 @@ MainWindow::MainWindow()
 {
     qDebug() << __PRETTY_FUNCTION__;
     QWidget * centralWidget = new CentralWidget();
-    setCentralWidget(centralWidget);
+    setCentralWidget(centralWidget); // QMainWindow takes responsibility for deletion.
 }
 
 MainWindow::~MainWindow()

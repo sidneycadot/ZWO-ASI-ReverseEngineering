@@ -163,7 +163,7 @@ void check_errorcode(ASI_ERROR_CODE errorcode)
     }
 }
 
-AsiThread::AsiThread() : quitFlag(false)
+AsiThread::AsiThread(QObject * parent) : QThread(parent)
 {
     qDebug() << __PRETTY_FUNCTION__;
 }
@@ -171,11 +171,8 @@ AsiThread::AsiThread() : quitFlag(false)
 AsiThread::~AsiThread()
 {
     qDebug() << __PRETTY_FUNCTION__;
-}
-
-void AsiThread::requestQuit()
-{
-    quitFlag = true;
+    quitGetImageLoop = true; // request that the image acquisition loop is stopped.
+    wait();
 }
 
 void AsiThread::run()
@@ -213,7 +210,8 @@ void AsiThread::run()
     errorcode = ASIStartVideoCapture(cameraInfo.CameraID);
     check_errorcode(errorcode);
 
-    while (!quitFlag)
+    quitGetImageLoop = false;
+    while (!quitGetImageLoop)
     {
         getImage(cameraInfo.CameraID);
     }
