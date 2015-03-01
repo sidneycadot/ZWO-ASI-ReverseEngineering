@@ -21,3 +21,15 @@ SOURCES += CentralWidget.cpp
 
 HEADERS += AsiThread.h
 SOURCES += AsiThread.cpp
+
+HEADERS += AsiCameraTableModel.h
+SOURCES += AsiCameraTableModel.cpp
+
+HEADERS += AsiCameraManager.h
+SOURCES += AsiCameraManager.cpp
+
+HEADERS += AsiCamera.h
+SOURCES += AsiCamera.cpp
+
+HEADERS += AsiUtils.h
+SOURCES += AsiUtils.cpp

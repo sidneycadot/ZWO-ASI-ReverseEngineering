@@ -4,22 +4,36 @@
 ///////////////////////
 
 #include <QDebug>
-#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
-#include <QFile>
+#include <QTableView>
+#include <QGroupBox>
 
 #include "CentralWidget.h"
+#include "AsiCameraTableModel.h"
 
 CentralWidget::CentralWidget()
 {
     qDebug() << __PRETTY_FUNCTION__;
 
-    QVBoxLayout * layout = new QVBoxLayout();
+    label = new QLabel("placeholder");
 
-    label = new QLabel();
+    //QLabel * description = new QLabel("This table shows the information of the ASI cameras connected to the system.");
+
+    //QTableView * tableview = new QTableView();
+    //QVBoxLayout * groupbox_layout = new QVBoxLayout();
+    //groupbox_layout->addWidget(description);
+    //groupbox_layout->addWidget(tableview);
+
+    //QGroupBox * groupbox = new QGroupBox();
+    //groupbox->setLayout(groupbox_layout);
+
+    QHBoxLayout * layout = new QHBoxLayout();
     layout->addWidget(label);
-
     setLayout(layout);
+
+    //AsiCameraTableModel * model = new AsiCameraTableModel();
+    //tableview->setModel(model);
 
     asiThread = new AsiThread(this);
 
