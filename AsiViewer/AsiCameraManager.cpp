@@ -23,6 +23,11 @@ AsiCameraManager::AsiCameraManager()
 
 AsiCameraManager::~AsiCameraManager()
 {
+    for (AsiCamera * camera : cameras)
+    {
+        delete camera;
+    }
+    cameras.clear();
 }
 
 int AsiCameraManager::getNumberOfCameras() const

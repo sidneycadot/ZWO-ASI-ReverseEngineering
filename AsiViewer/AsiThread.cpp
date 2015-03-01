@@ -42,20 +42,17 @@ void AsiThread::run()
 
     camera->open();
 
-    int CameraID = camera->getCameraInfo().CameraID;
+    int CameraID = camera->getCameraID();
 
-    ASI_ERROR_CODE errorcode = ASISetControlValue(CameraID, ASI_EXPOSURE, 20000, ASI_FALSE);
-    check_asi_errorcode(errorcode);
+    camera->getCameraControlByControlType(ASI_EXPOSURE)->setControlValue(1, false);
 
-    errorcode = ASISetROIFormat(CameraID, PIX_WIDTH, PIX_HEIGHT, BINNING, IMAGE_TYPE);
-    check_asi_errorcode(errorcode);
+    camera->setROIFormat(PIX_WIDTH, PIX_HEIGHT, BINNING, IMAGE_TYPE);
 
     camera->startVideoCapture();
 
     quitGetImageLoop = false;
     while (!quitGetImageLoop)
     {
-        qDebug() << "hi";
         getImage(CameraID);
     }
 

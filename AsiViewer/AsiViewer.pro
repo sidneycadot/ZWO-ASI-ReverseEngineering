@@ -31,5 +31,8 @@ SOURCES += AsiCameraManager.cpp
 HEADERS += AsiCamera.h
 SOURCES += AsiCamera.cpp
 
+HEADERS += AsiCameraControl.h
+SOURCES += AsiCameraControl.cpp
+
 HEADERS += AsiUtils.h
 SOURCES += AsiUtils.cpp
