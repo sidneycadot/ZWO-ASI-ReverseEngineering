@@ -128,36 +128,28 @@ MT9M034_EMBEDDED_DATA_CTRL         | 0x3064
 
 ## Methodology of reverse-engineering the library
 
-The proprietary ASICamera2 library uses libusb 1.0 (the modern version of the user-space USB library) to
-communicate with devices.
+The proprietary ASICamera2 library uses libusb 1.0 (the modern version of the user-space USB library) to communicate with devices.
 
-To understand the way in which the library uses libusb, we generated a patched version of the
-ASICamera2 library where all references to "libusb" are replaced by "libUSB".
+To understand the way in which the library uses libusb, we generated a patched version of the ASICamera2 library where all references to "libusb" are replaced by "libUSB".
 
-Next, we implement a "libUSB.c" that re-implements 15 of the "libusb" functions,
-but renames them with the prefix "libUSB". These 15 functions print their
-arguments, call the actual libusb functions, and then print the return value
-of the libusb functions.
+Next, we implement a "libUSB.c" that re-implements 15 of the "libusb" functions, but renames them with the prefix "libUSB". These 15 functions print their arguments, call the actual libusb functions, and then print the return value of the libusb functions.
 
 This effectively means that all usage of libusb by the ASICamera2 is now logged.
 
 ## What we learned so far
 
-The "ASICamera2" API currently consists of 24 function calls (v0.1.0320).
+The "ASICamera2" API currently consists of 26 function calls (v0.1.0320).
 
 We describe them below and discuss below what they do in terms of USB bus activity.
 
-All functions use the 'default' context of libusb, meaning that they pass a NULL pointer
-as the 'context' argument wherever it is needed.
+All functions use the 'default' context of libusb, meaning that they pass a NULL pointer as the 'context' argument wherever it is needed.
 
 ##### int ASIGetNumOfConnectedCameras()
 
-The ASIGetNumOfConnectedCameras() call is intended to be the first function called in a program that
-uses the ASICamera2 library.
+The ASIGetNumOfConnectedCameras() call is intended to be the first function called in a program that uses the ASICamera2 library.
 
 
-It starts by executing a libusb_init() call. Next it executes libusb_get_device_list() to obtain a list of
-all USB devices available in the system.
+It starts by executing a libusb_init() call. Next it executes libusb_get_device_list() to obtain a list of all USB devices available in the system.
 
 Next, it traverses the list of all devices. For each device, three libusb functions are called:
 
@@ -180,9 +172,7 @@ Instead, it returns the number of ASI camera devices found as an integer, or zer
 
 This function fills a user-supplied ASI_CAMERA_INFO structure with information about an ASI camera device.
 
-This function only works if ASIGetNumOfConnectedCameras() was executed beforehand. If it is called before, an
-ASI_ERROR_INVALID_ID is returned, presumably because the internal list of devices maintained by ASICamera2
-contains zero devices.
+This function only works if ASIGetNumOfConnectedCameras() was executed beforehand. If it is called before a call to ASIGetNumOfConnectedCameras was made, an ASI_ERROR_INVALID_ID is returned, presumably because the internal list of devices maintained by ASICamera2 contains zero devices.
 
 Since version v0.1.0214, this function causes a lot of traffix on the USB bus, comparable to the traffic of the ASIOpenCamera()
 call:
@@ -196,17 +186,15 @@ call:
 
 One difference is that libusb_control_transfer() is called one more time.
 
-The ASI_CAMERA_INFO contains the all-important 'CameraID' field. This is an integer value that is used to
-identify the camera in all API calls below.
+The ASI_CAMERA_INFO contains the all-important 'CameraID' field. This is an integer value that is used to identify the camera in all API calls below.
 
 ##### ASI_ERROR_CODE ASIOpenCamera(int iCameraID)
 
 Almost all functions in the API require that the camera be opened using this call.
 
-Note that on my machine, this call fails with error ASI_ERROR_CAMERA_REMOVED if the camera is connected in
-an actual USB3 port.
+Note that on my machine, this call fails with error ASI_ERROR_CAMERA_REMOVED if the camera is connected to an actual USB3 port, and the process is run as a normal user. When running as root, everything works fine. This indicates an udev configuration issue, where USB2 and USB3 ports are not handled identically.
 
-This function causes a flurry of libusb activity.
+This function causes a flurry of libusb activity:
 
 - libusb_init()
 - libusb_open_device_with_vid_pid(vendor_id = 0x03c3, product_id = 0x120d)
@@ -239,9 +227,6 @@ A "control" is a camera parameter that can be set and queried.
 The camera device must be opened for this to work.
 
 The ControlID and ControlType fields in ASI_CONTROL_CAPS appear to be identical.
-
-However, the "AutoExpMaxBrightness", with ControlID 12, control gives ControlType 11 (ASI_AutoExpMaxExp),
-which should probably be 12 (ASI_AutoExpMaxBrightness).
 
 This function causes no USB activity.
 
