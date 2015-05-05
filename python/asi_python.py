@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
 import ctypes
+import h5py
+import numpy as np
 
 #typedef struct _ASI_CAMERA_INFO
 #{
@@ -9,7 +11,7 @@ import ctypes
 #    long MaxHeight; //the max height of the camera
 #    long MaxWidth;  //the max width of the camera
 #
-#    ASI_BOOL IsColorCam; 
+#    ASI_BOOL IsColorCam;
 #    ASI_BAYER_PATTERN BayerPattern;
 #
 #    int SupportedBins[16]; //1 means bin1 which is supported by every camera, 2 means bin 2 etc.. 0 is the end of supported binning method
@@ -43,18 +45,18 @@ class ASI_CAMERA_INFO(ctypes.Structure):
 
 class ASI_CONTROL_CAPS(ctypes.Structure):
     _fields_ = [
-        ("Name"            , ctypes.c_char * 64),
+        ("Name"            , ctypes.c_char * 64 ),
         ("Description"     , ctypes.c_char * 128),
-        ("MaxValue"        , ctypes.c_long     ),
-        ("MinValue"        , ctypes.c_long     ),
-        ("DefaultValue"    , ctypes.c_long     ),
-        ("IsAutoSupported" , ctypes.c_int      ),
-        ("IsWritable"      , ctypes.c_int      ),
-        ("ControlType"     , ctypes.c_int      ),
-        ("Unused"          , ctypes.c_char * 32)
+        ("MaxValue"        , ctypes.c_long      ),
+        ("MinValue"        , ctypes.c_long      ),
+        ("DefaultValue"    , ctypes.c_long      ),
+        ("IsAutoSupported" , ctypes.c_int       ),
+        ("IsWritable"      , ctypes.c_int       ),
+        ("ControlType"     , ctypes.c_int       ),
+        ("Unused"          , ctypes.c_char * 32 )
     ]
 
-libasi = ctypes.cdll.LoadLibrary("libASICamera2.so.0.1.0214")
+libasi = ctypes.cdll.LoadLibrary("../libASICamera2.so.0.1.0320")
 
 numberOfCameras = libasi.ASIGetNumOfConnectedCameras()
 
@@ -83,6 +85,9 @@ for cameraIndex in range(numberOfCameras):
 
         print(controlInfo.Name, controlInfo.Description)
 
+    errorcode = libasi.ASISetControlValue(cameraInfo.CameraID, 1, 1000, False);
+
+
     errorcode = libasi.ASISetROIFormat(cameraInfo.CameraID, 1280, 960, 1, 2)
     assert errorcode == 0
 
@@ -91,13 +96,21 @@ for cameraIndex in range(numberOfCameras):
     errorcode = libasi.ASIStartVideoCapture(cameraInfo.CameraID)
     assert errorcode == 0
 
-    frameBuffer = (ctypes.c_ushort * (960 * 1280))()
+    fb = np.zeros((960, 1280), dtype = '<u2')
 
-    for frame in range(10):
+    f = h5py.File("images.h5", "w")
+    images = f.create_dataset("images", shape = (0, 960, 1280), maxshape = (None, 960, 1280), dtype = 'u2')
+
+    for frame in range(1000):
         print("capturing frame", frame)
-        errorcode = libasi.ASIGetVideoData(cameraInfo.CameraID, ctypes.byref(frameBuffer), 960 * 1280 * 2, 500)
+        errorcode = libasi.ASIGetVideoData(cameraInfo.CameraID, fb.ctypes, 960 * 1280 * 2, 500)
         print(errorcode)
         assert errorcode == 0
+        images.resize(frame + 1, axis = 0)
+        images[frame] = (fb + frame)
+        print(images.shape)
+
+    f.close()
 
     errorcode = libasi.ASIStopVideoCapture(cameraInfo.CameraID)
     assert errorcode == 0
