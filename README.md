@@ -2,20 +2,20 @@
 
 This repository contains efforts to reverse-engineer the protocol of the ZWO ASI120MM-S camera.
 
-This work is currently based on version 0.1.0214 of the library.
+This work is currently based on version 0.1.0320 of the library.
 
 ## List of files
 
 filename                           | description
 -----------------------------------|--------------------------------------------------------------------------------------------------------------
 README.md                          | Description of the library
-MD5SUM                             | contains MD5 checksums of the original library files (v0.1.0214).
-ASICamera2.h                       | The original header file (v0.1.0214)
+MD5SUM                             | contains MD5 checksums of the original library and include files (v0.1.0320).
+ASICamera2.h                       | The original header file (v0.1.0320)
 libASICamera2.a                    | The original static library
-libASICamera2.so.0.1.0214          | The original dynamic library
+libASICamera2.so.0.1.0320          | The original dynamic library
 patch-library.py                   | A script to make patched versions of the library where all references to "libusb" are replaced by "libUSB".
 libASICamera2_patched.a            | The patched static library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
-libASICamera2_patched.so.0.1.0214  | The patched dynamic library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
+libASICamera2_patched.so.0.1.0320  | The patched dynamic library; uses "libUSB_<xxx>" rather than "libusb_<xxx>" calls.
 ISSUES.txt                         | A text file describing several issues with the current include file and library
 asi-test.cc                        | A test program that controls the camera and captures a bunch of images.
 libUSB.h                           | A set of functions that mimic libusb behavior (header file)
@@ -26,15 +26,19 @@ libASICamera2_ReverseEngineered.c  | A first stab at a reverse-engineered versio
 
 ## External info
 
-A partial datasheet for the MT9M034 sensor can be found by googling, e.g. here: http://ghgtechn.com/admin/upload/634912822373126250MT9M034_DS_B.pdf
+A partial datasheet for the MT9M034 sensor can be found by googling, e.g. here:
 
-Note that this datasheet is marked "Aptina Confidential and Proprietary". Furthermore, the datasheet sadly doesn't include the register file description.
+    http://ghgtechn.com/admin/upload/634912822373126250MT9M034_DS_B.pdf.
+
+Note that this datasheet is marked "Aptina Confidential and Proprietary".
+Furthermore, the datasheet sadly doesn't include the register file description.
 
 Some more info is available here:
 
-https://github.com/Aptina/BeagleBoard-xM/tree/master/MT9M034
+    https://github.com/Aptina/BeagleBoard-xM/tree/master/MT9M034
 
-This has a V4L2 driver for the MT9M034 sensor that is partially done, it seems. At the very least we see some names for the register file in the code there.
+This has a V4L2 driver for the MT9M034 sensor that is partially done, it seems.
+At the very least we see some names for the register file in the code there.
 
 ## Register file
 
@@ -127,22 +131,24 @@ MT9M034_EMBEDDED_DATA_CTRL         | 0x3064
 The proprietary ASICamera2 library uses libusb 1.0 (the modern version of the user-space USB library) to
 communicate with devices.
 
-To understand the way in which the library uses libusb, we generated a patched version of the ASICamera2 library
-where all references to "libusb" are replaced by "libUSB".
+To understand the way in which the library uses libusb, we generated a patched version of the
+ASICamera2 library where all references to "libusb" are replaced by "libUSB".
 
-Next, we implement a "libUSB.c" that re-implements 15 of the "libusb" functions, but renames them with the prefix "libUSB".
-These 15 functions print their arguments, call the actual libusb functions, and then print the return value of the libusb functions.
+Next, we implement a "libUSB.c" that re-implements 15 of the "libusb" functions,
+but renames them with the prefix "libUSB". These 15 functions print their
+arguments, call the actual libusb functions, and then print the return value
+of the libusb functions.
 
 This effectively means that all usage of libusb by the ASICamera2 is now logged.
 
 ## What we learned so far
 
-The "ASICamera2" API currently consists of 24 function calls (v0.1.0214).
+The "ASICamera2" API currently consists of 24 function calls (v0.1.0320).
 
 We describe them below and discuss below what they do in terms of USB bus activity.
 
-All functions use the 'default' context of libusb, meaning that they pass a NULL pointer as the 'context' argument
-wherever it is needed.
+All functions use the 'default' context of libusb, meaning that they pass a NULL pointer
+as the 'context' argument wherever it is needed.
 
 ##### int ASIGetNumOfConnectedCameras()
 
@@ -243,7 +249,7 @@ This function causes no USB activity.
 
 Get the current value of a certain control.
 
-Note that only a query of the ASI_TEMPERATURE control causes bus activity
+Note that only a query of the ASI_TEMPERATURE control causes bus activity.
 An ASI_TEMPERATURE request looks like this:
 
 libusb_control_transfer(dev, bmRequestType = 192, bRequest = 0xa7, wValue = 0x30b2, wIndex = 0, data = ..., wLength = 2, timeout = 500)
@@ -302,7 +308,7 @@ libusb_control_transfer(dev, bmRequestType = 0x40, bRequest = 0xa6, wValue = 0x3
 
 ##### ASI_ERROR_CODE ASIGetStartPos(int iCameraID, int *piStartX, int *piStartY)
 
-No traffic. The value is locally cached.
+No traffic.
 
 ##### ASI_ERROR_CODE ASIEnableDarkSubtract(int iCameraID, char *pcBMPPath, bool *bIsSubDarkWorking)
 ##### ASI_ERROR_CODE ASIDisableDarkSubtract(int iCameraID)
@@ -344,6 +350,10 @@ libusb_control_transfer(dev, bmRequestType = 64, bRequest = 0xb1, wValue = direc
 
 This function is completely understood.
 
+##### ASI_ERROR_CODE ASIStartExposure(int iCameraID, long lTimems, ASI_BOOL bIsDark)
+
+New in API v0.1.0214; not investigated yet.
+
 ##### ASI_ERROR_CODE ASIStopExposure(int iCameraID)
 
 New in API v0.1.0214; not investigated yet.
@@ -355,3 +365,11 @@ New in API v0.1.0214; not investigated yet.
 ##### ASI_ERROR_CODE ASIGetDataAfterExp(int iCameraID, unsigned char* pBuffer, long lBuffSize)
 
 New in API v0.1.0214; not investigated yet.
+
+##### ASI_ERROR_CODE ASIGetID(int iCameraID, ASI_ID* pID)
+
+New in API v0.1.0320; not investigated yet.
+
+##### ASI_ERROR_CODE ASISetID(int iCameraID, ASI_ID pID)
+
+New in API v0.1.0320; not investigated yet.

@@ -312,3 +312,19 @@ ASI_ERROR_CODE ASIGetDataAfterExp(int iCameraID, unsigned char * pBuffer, long l
 
     return ASI_SUCCESS;
 }
+
+ASI_ERROR_CODE ASIGetID(int iCameraID, ASI_ID * pID)
+{
+    (void)iCameraID; // unused
+    (void)pID; // unused
+
+    return ASI_SUCCESS;
+}
+
+ASI_ERROR_CODE ASISetID(int iCameraID, ASI_ID ID)
+{
+    (void)iCameraID; // unused
+    (void)ID; // unused
+
+    return ASI_SUCCESS;
+}
