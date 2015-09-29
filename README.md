@@ -2,7 +2,7 @@
 
 This repository contains efforts to reverse-engineer the protocol of the ZWO ASI120MM-S camera.
 
-This work is currently based on version 0.1.0320 of the library.
+This work is currently based on version 0.1.0803 of the library (29 sept 2015).
 
 ## List of files
 
@@ -23,6 +23,27 @@ libUSB.c                           | A set of functions that mimic libusb behavi
 Makefile                           | Makefile for several program.
 asi-test-c-compatibility.c         | A C program that just opens/closes a camera, to test library compatibility with C rather than C++.
 libASICamera2_ReverseEngineered.c  | A first stab at a reverse-engineered version of libASICamera2, having the same API.
+
+## ASI SDK download
+
+The driver can be downloaded from this page:
+
+http://astronomy-imaging-camera.com/software/
+
+Version 0.1.0803 can be downloaded from this link:
+
+http://astronomy-imaging-camera.com/software/ASI_linux_mac_SDK_V0.1.0803.tar
+
+Its MD5SUM is e61ce4022ebab5b0068095a96ddc7f40.
+
+Untarring yields the file ASI_linux_mac_SDK.tar.bz2.
+
+Untarring this file yields 4 directories: "include", "libusb", "demo", and "lib".
+
+The interesting parts (for amd64 / Linux development) are:
+
+a6f1a4b69aefa318488ef2893e5f3dc0  include/ASICamera2.h
+1714b27830e44788c209cba28b7f97b1  lib/c64/libASICamera2.a
 
 ## External info
 

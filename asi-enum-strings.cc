@@ -113,6 +113,7 @@ const char * toString(const ASI_CONTROL_TYPE controlType)
         case ASI_HIGH_SPEED_MODE     : return "ASI_HIGH_SPEED_MODE";
         case ASI_COOLER_POWER_PERC   : return "ASI_COOLER_POWER_PERC";
         case ASI_TARGET_TEMP         : return "ASI_TARGET_TEMP";
+        case ASI_COOLER_ON           : return "ASI_COOLER_ON";
     }
     return "unknown";
 }

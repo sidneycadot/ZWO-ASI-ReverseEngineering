@@ -28,8 +28,11 @@ libUSB.o : libUSB.c
 
 libASICamera2_ReverseEngineered.o : libASICamera2_ReverseEngineered.c
 
+libASICamera2_patched.a : libASICamera2.a
+
 clean :
 	$(RM) asi-test-ORIG asi-test-RE asi-test asi-test-c-compatibility
-	$(RM) asi-test.o libUSB.o asi-test-c-compatibility.o libASICamera2_ReverseEngineered.o
+	$(RM) asi-test.o libUSB.o asi-test-c-compatibility.o libASICamera2_ReverseEngineered.o asi-enum-strings.o
 	$(RM) usb_control_transfer.log
+	$(RM) libASICamera2_patched.a
 	$(RM) *~

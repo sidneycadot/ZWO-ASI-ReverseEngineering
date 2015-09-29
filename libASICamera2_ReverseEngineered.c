@@ -280,10 +280,9 @@ ASI_ERROR_CODE ASIPulseGuideOff(int iCameraID, ASI_GUIDE_DIRECTION direction)
     return ASI_SUCCESS;
 }
 
-ASI_ERROR_CODE ASIStartExposure(int iCameraID, long lTimems, ASI_BOOL bIsDark)
+ASI_ERROR_CODE ASIStartExposure(int iCameraID, ASI_BOOL bIsDark)
 {
     (void)iCameraID; // unused
-    (void)lTimems; // unused
     (void)bIsDark; // unused
 
     return ASI_SUCCESS;

@@ -113,7 +113,8 @@ typedef struct _ASI_CAMERA_INFO
 	ASI_BOOL ST4Port;
 	ASI_BOOL IsCoolerCam;
 	ASI_BOOL IsUSB3Host;
-	char Unused[32];
+	ASI_BOOL IsUSB3Camera;
+	char Unused[28];
 } ASI_CAMERA_INFO;
 
 typedef enum ASI_CONTROL_TYPE{ //Control type//
@@ -133,7 +134,8 @@ typedef enum ASI_CONTROL_TYPE{ //Control type//
 	ASI_HARDWARE_BIN,
 	ASI_HIGH_SPEED_MODE,
 	ASI_COOLER_POWER_PERC,
-	ASI_TARGET_TEMP//if set to Auto, temperature is adjusted automatically; if not Auto, cooler is shutted off
+	ASI_TARGET_TEMP,
+	ASI_COOLER_ON
 }ASI_CONTROL_TYPE;
 
 typedef struct _ASI_CONTROL_CAPS
@@ -372,6 +374,7 @@ Descriptions£º
 Set the start position of the ROI area.
 you can call this API to move the ROI area when video is streaming
 the camera will set the ROI area to the center of the full image as default
+at bin2 or bin3 mode, the position is relative to the image after binning
 
 
 Paras£º		
@@ -572,7 +575,6 @@ start exposure  and check the exposure status then get the data
 
 Paras£º		
 int CameraID: this is get from the camera property use the API ASIGetCameraProperty
-long lTimems: the exposure time you want to set, 
 ASI_BOOL bIsDark: means dark frame if there is mechanical shutter on the camera. otherwise useless
 
 return:
@@ -581,7 +583,7 @@ ASI_ERROR_CAMERA_CLOSED : camera didn't open
 ASI_ERROR_INVALID_ID  :no camera connected or index value out of boundary
 
 ***************************************************************************/
-ASICAMERA_API ASI_ERROR_CODE  ASIStartExposure(int iCameraID, long lTimems, ASI_BOOL bIsDark);
+ASICAMERA_API ASI_ERROR_CODE  ASIStartExposure(int iCameraID, ASI_BOOL bIsDark);
 
 /***************************************************************************
 Descriptions£º
@@ -646,7 +648,7 @@ ASICAMERA_API  ASI_ERROR_CODE ASIGetDataAfterExp(int iCameraID, unsigned char* p
 
 /***************************************************************************
 Descriptions£º
-get camera id stored in flash, 8 bytes length, only available for USB3.0 camera
+get camera id stored in flash, only available for USB3.0 camera
 
 Paras£º		
 int CameraID: this is get from the camera property use the API ASIGetCameraProperty
@@ -661,7 +663,7 @@ ASICAMERA_API  ASI_ERROR_CODE ASIGetID(int iCameraID, ASI_ID* pID);
 
 /***************************************************************************
 Descriptions£º
-write camera id to flash, 8 bytes length, only available for USB3.0 camera
+write camera id to flash, only available for USB3.0 camera
 
 Paras£º		
 int CameraID: this is get from the camera property use the API ASIGetCameraProperty
@@ -673,6 +675,8 @@ ASI_ERROR_CAMERA_CLOSED : camera didn't open
 ASI_ERROR_INVALID_ID  :no camera connected or index value out of boundary
 ***************************************************************************/
 ASICAMERA_API  ASI_ERROR_CODE ASISetID(int iCameraID, ASI_ID ID);
+
+
 
 #ifdef __cplusplus
 }

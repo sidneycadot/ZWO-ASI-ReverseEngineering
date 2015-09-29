@@ -84,9 +84,10 @@ static void show_AsiCameraInfo(const ASI_CAMERA_INFO & cameraInfo)
     cout << "    ST4Port ................... : " << cameraInfo.ST4Port           << " (" << toString(cameraInfo.ST4Port)           << ")" << endl;
     cout << "    IsCoolerCam ............... : " << cameraInfo.IsCoolerCam       << " (" << toString(cameraInfo.IsCoolerCam)       << ")" << endl;
     cout << "    IsUSB3Host ................ : " << cameraInfo.IsUSB3Host        << " (" << toString(cameraInfo.IsUSB3Host)        << ")" << endl;
+    cout << "    IsUSB3Camera .............. : " << cameraInfo.IsUSB3Camera      << " (" << toString(cameraInfo.IsUSB3Camera)      << ")" << endl;
 
     cout << "    Unused .................... : {";
-    for (int i = 0; i < 32; ++i)
+    for (int i = 0; i < 28; ++i)
     {
         if (i != 0)
         {
